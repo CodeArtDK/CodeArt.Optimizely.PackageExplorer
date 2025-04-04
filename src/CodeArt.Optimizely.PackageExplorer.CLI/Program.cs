@@ -1,8 +1,17 @@
-﻿internal class Program
+﻿using CodeArt.Optimizely.PackageExplorer.Core.Services;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-        Uri.IsWellFormedUriString
+
+
+        PackageReader packageReader = new PackageReader("..\\..\\..\\..\\..\\Samples\\DefaultSiteContent.episerverdata");
+
+        var contentItems = packageReader.GetContentItems();
+        var tabs = packageReader.GetTabs();
+        var contentTypes = packageReader.GetContentTypes();
+
     }
 }

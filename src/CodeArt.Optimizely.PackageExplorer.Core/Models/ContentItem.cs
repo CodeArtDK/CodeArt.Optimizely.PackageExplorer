@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace CodeArt.Optimizely.PackageExplorer.Core.Models;
 
-namespace CodeArt.Optimizely.PackageExplorer.Core.Models
+public class ContentItem
 {
-    class ContentItem
-    {
-    }
+    public string Id { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? ParentId { get; set; }
+    public string ContentType { get; set; } = string.Empty;
+    public List<KeyValuePair<string, string>> Properties { get; set; } = new();
 }

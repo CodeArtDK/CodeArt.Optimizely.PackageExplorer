@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace CodeArt.Optimizely.PackageExplorer.Core.Models;
 
-namespace CodeArt.Optimizely.PackageExplorer.Core.Models
+public class TabDefinition
 {
-    class TabDefinition
-    {
-    }
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? DisplayName { get; set; }
+    public int SortIndex { get; set; }
+    public bool IsSystemTab { get; set; }
 }
