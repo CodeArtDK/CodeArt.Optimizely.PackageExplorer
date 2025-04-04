@@ -1,10 +1,17 @@
 ﻿namespace CodeArt.Optimizely.PackageExplorer.Core.Models;
 
+
 public class ContentItem
 {
-    public string Id { get; set; } = string.Empty;
-    public string Title { get; set; } = string.Empty;
-    public string? ParentId { get; set; }
-    public string ContentType { get; set; } = string.Empty;
-    public List<KeyValuePair<string, string>> Properties { get; set; } = new();
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+    public Guid ContentTypeGuid { get; set; }
+    public List<ContentProperty> Properties { get; set; } = new();
+}
+
+public class ContentProperty
+{
+    public string Name { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string? Value { get; set; }
 }

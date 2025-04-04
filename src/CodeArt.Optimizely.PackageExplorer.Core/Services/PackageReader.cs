@@ -16,9 +16,8 @@ public class PackageReader
     public List<ContentItem> GetContentItems()
     {
         var xml = _zip.ReadXmlFile("epix.xml");
-        return XmlParser.ParseContentItems(xml);
+        return ContentItemParser.ParseContentItems(xml);
     }
-
     public List<TabDefinition> GetTabs()
     {
         var xml = _zip.ReadXmlFile("epiDefinition.xml");
