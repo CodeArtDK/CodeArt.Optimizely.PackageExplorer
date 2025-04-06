@@ -19,10 +19,12 @@ public static class ContentItemParser
 
             var item = new ContentItem
             {
-                Id = ParseGuid(rawContent.Element("GUID")),
-                Name = (string?)rawContent.Element("PageName") ?? "(Unnamed)",
-                ContentTypeGuid = ParseGuid(rawContent.Element("ContentTypeID")),
+                //Id = ParseGuid(rawContent.Element("GUID")),
+                //ContentTypeGuid = ParseGuid(rawContent.Element("ContentTypeID")),
             };
+            //RawLanguageData, LanguageSettings,ContentLanguageSettings, DynamicProperties
+
+            //ACL's
 
             var properties = rawContent
                 .Descendants("RawProperty");
@@ -33,7 +35,10 @@ public static class ContentItemParser
                 {
                     Name = (string?)prop.Element("Name") ?? "",
                     Type = (string?)prop.Element("Type") ?? "",
-                    Value = prop.Element("Value")?.Value?.Trim()
+                    Value = prop.Element("Value")?.Value?.Trim(),
+                    PropertyDefinitionID = int.Parse((string?) prop.Element("PropertyDefinitionID") ?? "-1" ),
+                    OwnerTab = int.Parse((string?)prop.Element("OwnerTab") ?? "-1"),
+                    TypeName = (string?)prop.Element("TypeName")
                 });
             }
 
