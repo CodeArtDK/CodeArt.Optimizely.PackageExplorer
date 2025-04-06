@@ -1,7 +1,48 @@
 ﻿@page "/"
+@page "/upload"
+@using Microsoft.AspNetCore.Components.Forms
+@inject ILogger<Home> Logger
 
-<PageTitle>Home</PageTitle>
+    <MudText Typo="Typo.h5">Upload Episerver Package</MudText>
 
-<h1>Hello, world!</h1>
+    <MudFileUpload T="IBrowserFile"
+                   Label="Upload .episerverdata or .episerverpackage file"
+                   AcceptedFormats=".episerverdata,.episerverpackage"
+                   MaxFiles="1"
+                   OnFilesChanged="OnFilesChanged"
+                   Class="mt-4" />
 
-Welcome to your new app.
+    @if (!string.IsNullOrEmpty(StatusMessage))
+    {
+        <MudText Class="mt-2" Color="Color.Info">@StatusMessage</MudText>
+    }
+
+@code {
+    private string StatusMessage;
+
+    private async Task OnFilesChanged(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            StatusMessage = "No file selected.";
+            return;
+        }
+
+        try
+        {
+            // Optional: validate file size or extension
+            using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000); // 100MB limit
+
+            // TODO: Pass this stream to your package reader
+            StatusMessage = $"File '{file.Name}' uploaded successfully. Size: {file.Size} bytes";
+
+            // e.g. await _packageReader.ReadAsync(stream);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing uploaded file.");
+            StatusMessage = "Failed to read the file.";
+        }
+    }
+}
