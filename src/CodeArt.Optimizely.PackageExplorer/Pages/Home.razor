@@ -4,6 +4,7 @@
 @using CodeArt.Optimizely.PackageExplorer.Core.Services
 @using Microsoft.AspNetCore.Components.Forms
 @inject ILogger<Home> Logger
+@inject IJSRuntime JS
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudPaper Class="m-4 p-4 mt-12">
@@ -19,8 +20,8 @@
                 <MudFileUpload T="IBrowserFile" FilesChanged="OnFilesChanged" MaximumFileCount="1" Accept=".episerverdata,.episerverpackage">
                     <ActivatorContent>
                         <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                        Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.CloudUpload">
                             Open File
                         </MudButton>
                     </ActivatorContent>
@@ -34,21 +35,29 @@
 
         </MudStack>
 
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center mt-6">
+                <MudProgressCircular Size="Size.Large" Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+
         @if (contentItems != null)
         {
             <!-- Tabs for content -->
             <MudTabs Class="mt-4" Rounded="true">
-            <MudTabPanel Text="@($"Content ({contentItems.Count})")">
+                <MudTabPanel Text="@($"Content ({contentItems.Count})")">
                     <MudDataGrid Items="@contentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" >
                         <Columns>
                             <HierarchyColumn T="ContentItem" />
+                            <PropertyColumn Property="x => x.PageURLSegment" Title="URL Segment"/>
                             <PropertyColumn Property="x => x.Name" Title="Name" />
                             <PropertyColumn Property="x => x.ContentTypeName" Title="Content Type" />
                             <PropertyColumn Property="x => x.PageStartPublish" Title="Start Publish" />
                             <PropertyColumn Property="x => x.PageLanguageBranch" Title="Language" />
                             <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" />
                         </Columns>
-                         <ChildRowContent>
+                        <ChildRowContent>
                             <MudCard>
                                 <MudCardHeader>
                                     <CardHeaderContent>
@@ -58,15 +67,44 @@
                                 <MudCardContent>
                                     <MudDataGrid Items="@context.Item.Properties" Dense="true">
                                         <Columns>
-                                            <PropertyColumn Property="x => x.Name" Title="Name" />
+
+                                            <TemplateColumn T="ContentProperty" Title="Name">
+                                                <CellTemplate Context="property">
+                                                    <MudText>
+                                                        @property.Item.Name
+                                                        @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID==0)
+                                                        {
+                                                            <MudBadge Color="Color.Info"
+                                                            Variant="Variant.Outlined"
+                                                            Class="ml-2"
+                                                            Content="@("System")" />
+                                                        }
+                                                    </MudText>
+                                                </CellTemplate>
+                                            </TemplateColumn>  
                                             <PropertyColumn Property="x => x.Value" Title="Value" />
+                                            <TemplateColumn T="ContentProperty" Title="Value">
+                                                <CellTemplate Context="property">
+                                                    @if(property.Item.TypeName=="EPiServer.SpecializedProperties.PropertyXhtmlString"){
+                                                        <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+
+                                                    } else {
+                                                        <MudText>@property.Item.Value</MudText>
+                                                    }
+                                                </CellTemplate>
+                                            </TemplateColumn>
                                         </Columns>
                                     </MudDataGrid>
                                 </MudCardContent>
                             </MudCard>
-                         </ChildRowContent>
+                        </ChildRowContent>
                     </MudDataGrid>
-@*                 <MudGrid>
+
+                </MudTabPanel>
+
+                <MudTabPanel Text="Content Tree">
+                    <MudText>Content Tree will appear here.</MudText>
+                    @*                 <MudGrid>
                     <MudItem xs="12" md="4">
                         <MudPaper Class="p-2">
                               <MudTreeView T="ContentItem"
@@ -84,28 +122,40 @@
 
                     </MudItem>
                 </MudGrid> *@
-            </MudTabPanel>
-
-                <MudTabPanel Text="Content Tree">
-                    <MudText>Content Tree will appear here.</MudText>
                 </MudTabPanel>
 
-            <MudTabPanel Text="Content Types">
-                <MudText>Content types will appear here.</MudText>
-            </MudTabPanel>
+                <MudTabPanel Text="Content Types">
+                    @if (contentTypes?.Any() == true)
+                    {
+                        <MudList T="ContentTypeDefinition" Dense="true" Class="mt-2">
+                            @foreach (var type in contentTypes)
+                            {
+                                <MudListItem>
+                                    <MudText Typo="Typo.subtitle1">@type.Name</MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary" Class="mt-2">
+                            No content types found.
+                        </MudText>
+                    }
+                </MudTabPanel>
 
-            <MudTabPanel Text="Files">
-                <MudText>Files will appear here.</MudText>
-            </MudTabPanel>
+                <MudTabPanel Text="Media">
+                    <MudText>Files will appear here.</MudText>
+                </MudTabPanel>
 
-                <MudTabPanel Text="Visitor Groups">
+                <MudTabPanel Text="Visitor Groups" Visible="false">
                     <MudText>Visitor Groups will appear here</MudText>
                 </MudTabPanel>
 
-                <MudTabPanel Text="Categories">
+                <MudTabPanel Text="Categories" Visible="false">
                     <MudText>Categories will appear here.</MudText>
                 </MudTabPanel>
-        </MudTabs>
+            </MudTabs>
         }
     </MudPaper>
 
@@ -116,19 +166,57 @@
     private InputFile? fileInput;
     private PackageReader packageReader;
     private List<ContentItem> contentItems;
+    private List<ContentTypeDefinition> contentTypes;
+    private List<MediaContentItem> mediaContentItems;
+
+    private List<HierarchicalContentItem> hierarchy;
+    private bool _isLoading = false;
 
 
     private async Task OnFilesChanged(IBrowserFile file)
     {
+        _isLoading = true;
         Console.WriteLine($"File name: {file.Name}");
-        StatusMessage = $"File name: {file.Name}";
-        using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000);
-        using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        memoryStream.Position = 0;
-        packageReader = new PackageReader(memoryStream);
-        contentItems = packageReader.GetContentItems();
+        StatusMessage = $"Loading {file.Name} , Size: {FormatFileSize(file.Size)}";
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            packageReader = new PackageReader(memoryStream);
+            contentItems = packageReader.GetContentItems();
+            contentTypes = packageReader.GetContentTypes();
+            hierarchy = ContentItemEnricher.EnrichContentItems(contentItems);
+            StatusMessage = $"Loaded {file.Name} , Size: {FormatFileSize(file.Size)}";
+            await JS.InvokeVoidAsync("if(window.Prism) Prism.highlightAll();");
+
+
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error reading file");
+            StatusMessage = "Error processing the file.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
 
         Console.WriteLine($"Uploaded: {file.Name}, Size: {file.Size}");
+    }
+
+    public static string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+
+        return $"{len:0.#} {sizes[order]}";
     }
 }

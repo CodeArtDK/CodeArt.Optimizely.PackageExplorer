@@ -73,6 +73,14 @@ public class ContentItem
         }
     }
 
+    public string? PageURLSegment
+    {
+        get
+        {
+            return TryGetProperty("PageURLSegment");
+        }
+    }
+
     public DateTime? PageStartPublish
     {
         get

@@ -56,7 +56,7 @@ Then open https://localhost:5001 in your browser.
 
 ## 🌐 Live Demo
 
-> Coming soon via [GitHub Pages](https://pages.github.com/).
+> Try it out on Github Pages [https://codeartdk.github.io/CodeArt.Optimizely.PackageExplorer/](https://codeartdk.github.io/CodeArt.Optimizely.PackageExplorer/)
 
 ---
 
