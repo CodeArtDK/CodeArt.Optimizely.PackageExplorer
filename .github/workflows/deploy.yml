@@ -1,0 +1,45 @@
+name: Deploy Blazor WebAssembly to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Deploy when pushing to main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x  # Use your actual .NET version
+
+      - name: 💾 Cache NuGet packages (optional but speeds things up)
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: 🧹 Clean release folder
+        run: rm -rf release
+
+      - name: 🏗 Build and publish Blazor WASM
+        run: |
+          dotnet publish src/CodeArt.Optimizely.PackageExplorer -c Release -o release /p:BasePath="/${{ github.event.repository.name }}/"
+
+      - name: 🔧 Fix base href in index.html
+        run: |
+          cd release/wwwroot
+          sed -i 's|<base href="/"|<base href="/${{ github.event.repository.name }}/"|' index.html
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./release/wwwroot
