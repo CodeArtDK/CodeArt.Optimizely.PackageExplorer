@@ -48,6 +48,8 @@ The current version is focused on **read-only exploration** of package contents.
 git clone https://github.com/your-username/your-repo-name.git
 cd your-repo-name/src
 dotnet run --project CodeArt.Optimizely.PackageExplorer
+```
+
 Then open https://localhost:5001 in your browser.
 
 ---
