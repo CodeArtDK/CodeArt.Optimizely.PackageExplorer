@@ -13,6 +13,11 @@ public class ZipPackage : IDisposable
         _zipArchive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
     }
 
+    public ZipPackage(Stream stream)
+    {
+        _zipArchive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+    }
+
     public XDocument ReadXmlFile(string filename)
     {
         var entry = _zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(filename, StringComparison.OrdinalIgnoreCase));

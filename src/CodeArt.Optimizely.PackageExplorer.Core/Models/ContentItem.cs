@@ -33,6 +33,68 @@ public class ContentItem
         }
     }
 
+    public string? ContentLink
+    {
+        get
+        {
+            return TryGetProperty("PageLink")?.Replace("[", "").Replace("]", "").Trim();
+        }
+    }
+
+    public string? ParentLink
+    {
+        get
+        {
+            return TryGetProperty("PageParentLink")?.Replace("[", "").Replace("]", "").Trim();
+        }
+    }
+
+    public string? ContentAssetsID
+    {
+        get
+        {
+            return TryGetProperty("PageContentAssetsID");
+        }
+    }
+
+    public string? PageLanguageBranch
+    {
+        get
+        {
+            return TryGetProperty("PageLanguageBranch");
+        }
+    }
+
+    public string? PageMasterLanguageBranch
+    {
+        get
+        {
+            return TryGetProperty("PageMasterLanguageBranch");
+        }
+    }
+
+    public DateTime? PageStartPublish
+    {
+        get
+        {
+            var value = TryGetProperty("PageStartPublish");
+            if (value == null) return null;
+            if (DateTime.TryParse(value, out var date))
+            {
+                return date;
+            }
+            return null;
+        }
+    }
+
+    public IEnumerable<ContentProperty> CustomProperties
+    {
+        get
+        {
+            return Properties.Where(p => !p.Name.StartsWith("Page"));
+        }
+    }
+
     public List<ContentProperty> Properties { get; set; } = new();
 
 

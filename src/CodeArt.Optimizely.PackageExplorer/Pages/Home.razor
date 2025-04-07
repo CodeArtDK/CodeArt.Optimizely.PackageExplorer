@@ -1,48 +1,134 @@
 ﻿@page "/"
 @page "/upload"
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@using CodeArt.Optimizely.PackageExplorer.Core.Services
 @using Microsoft.AspNetCore.Components.Forms
 @inject ILogger<Home> Logger
 
-    <MudText Typo="Typo.h5">Upload Episerver Package</MudText>
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Class="m-4 p-4 mt-12">
+        <MudStack Spacing="2">
 
-    <MudFileUpload T="IBrowserFile"
-                   Label="Upload .episerverdata or .episerverpackage file"
-                   AcceptedFormats=".episerverdata,.episerverpackage"
-                   MaxFiles="1"
-                   OnFilesChanged="OnFilesChanged"
-                   Class="mt-4" />
+            <!-- Intro Text -->
+            <MudText Typo="Typo.caption">
+                Open an Optimizely content package (.episerverdata) to explore its contents. Everything is local in your browser.
+            </MudText>
 
-    @if (!string.IsNullOrEmpty(StatusMessage))
-    {
-        <MudText Class="mt-2" Color="Color.Info">@StatusMessage</MudText>
-    }
+            <!-- File Upload with Button and Status Message -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudFileUpload T="IBrowserFile" FilesChanged="OnFilesChanged" MaximumFileCount="1" Accept=".episerverdata,.episerverpackage">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                            Open File
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                @if (!string.IsNullOrEmpty(StatusMessage))
+                {
+                    <MudText Color="Color.Info">@StatusMessage</MudText>
+                }
+            </MudStack>
+
+        </MudStack>
+
+        @if (contentItems != null)
+        {
+            <!-- Tabs for content -->
+            <MudTabs Class="mt-4" Rounded="true">
+            <MudTabPanel Text="@($"Content ({contentItems.Count})")">
+                    <MudDataGrid Items="@contentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" >
+                        <Columns>
+                            <HierarchyColumn T="ContentItem" />
+                            <PropertyColumn Property="x => x.Name" Title="Name" />
+                            <PropertyColumn Property="x => x.ContentTypeName" Title="Content Type" />
+                            <PropertyColumn Property="x => x.PageStartPublish" Title="Start Publish" />
+                            <PropertyColumn Property="x => x.PageLanguageBranch" Title="Language" />
+                            <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" />
+                        </Columns>
+                         <ChildRowContent>
+                            <MudCard>
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h6">@("["+context.Item.ContentTypeName+"] "+ context.Item.Name)</MudText>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudDataGrid Items="@context.Item.Properties" Dense="true">
+                                        <Columns>
+                                            <PropertyColumn Property="x => x.Name" Title="Name" />
+                                            <PropertyColumn Property="x => x.Value" Title="Value" />
+                                        </Columns>
+                                    </MudDataGrid>
+                                </MudCardContent>
+                            </MudCard>
+                         </ChildRowContent>
+                    </MudDataGrid>
+@*                 <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudPaper Class="p-2">
+                              <MudTreeView T="ContentItem"
+                                     Items="@ContentTree"
+                                     Hover="true"
+                                     @bind-SelectedValue="_selectedContent"
+                                     SelectedValueChanged="OnContentSelected">
+                            <TreeItemTemplate>
+                                @context.Name
+                            </TreeItemTemplate>
+                        </MudTreeView> 
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+
+                    </MudItem>
+                </MudGrid> *@
+            </MudTabPanel>
+
+                <MudTabPanel Text="Content Tree">
+                    <MudText>Content Tree will appear here.</MudText>
+                </MudTabPanel>
+
+            <MudTabPanel Text="Content Types">
+                <MudText>Content types will appear here.</MudText>
+            </MudTabPanel>
+
+            <MudTabPanel Text="Files">
+                <MudText>Files will appear here.</MudText>
+            </MudTabPanel>
+
+                <MudTabPanel Text="Visitor Groups">
+                    <MudText>Visitor Groups will appear here</MudText>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Categories">
+                    <MudText>Categories will appear here.</MudText>
+                </MudTabPanel>
+        </MudTabs>
+        }
+    </MudPaper>
+
+</MudContainer>
 
 @code {
     private string StatusMessage;
+    private InputFile? fileInput;
+    private PackageReader packageReader;
+    private List<ContentItem> contentItems;
 
-    private async Task OnFilesChanged(InputFileChangeEventArgs e)
+
+    private async Task OnFilesChanged(IBrowserFile file)
     {
-        var file = e.File;
-        if (file == null)
-        {
-            StatusMessage = "No file selected.";
-            return;
-        }
+        Console.WriteLine($"File name: {file.Name}");
+        StatusMessage = $"File name: {file.Name}";
+        using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+        packageReader = new PackageReader(memoryStream);
+        contentItems = packageReader.GetContentItems();
 
-        try
-        {
-            // Optional: validate file size or extension
-            using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000); // 100MB limit
-
-            // TODO: Pass this stream to your package reader
-            StatusMessage = $"File '{file.Name}' uploaded successfully. Size: {file.Size} bytes";
-
-            // e.g. await _packageReader.ReadAsync(stream);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error processing uploaded file.");
-            StatusMessage = "Failed to read the file.";
-        }
+        Console.WriteLine($"Uploaded: {file.Name}, Size: {file.Size}");
     }
 }

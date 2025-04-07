@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider  Theme="@_customTheme" />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -10,12 +10,93 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="1" Class="px-4">
+        <MudImage Src="logo.png"
+                  Alt="Package Explorer Logo"
+                  Height="36"
+                  Width="36"
+                  Class="mr-2" />
+        <MudSpacer />
         <MudText Typo="Typo.h5" Class="ml-3">Optimizely CMS Package Explorer</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudMenu Dense
+                 Variant="Variant.Text"
+                 Size="Size.Medium"
+                 Color="Color.Inherit"
+                 Icon="@Icons.Material.TwoTone.MoreVert">
+
+            <MudMenu StartIcon="@Icons.Material.TwoTone.Settings"
+                     IconColor="Color.Primary"
+                     Label="Settings">
+                <MudMenuItem Icon="@Icons.Material.TwoTone.DarkMode"
+                             IconColor="Color.Secondary"
+                             Label="Dark Theme" />
+            </MudMenu>
+
+            <MudDivider />
+
+            <MudMenuItem Href="https://github.com/CodeArtDK/CodeArt.Optimizely.PackageExplorer"
+                         ForceLoad
+                         Icon="@Icons.Material.TwoTone.QuestionMark"
+                         IconColor="Color.Primary"
+                         Label="About" />
+
+            
+        </MudMenu>
     </MudAppBar>
     <MudMainContent>
         @Body
     </MudMainContent>
 </MudLayout>
+@code {
+    private MudTheme _customTheme = new MudTheme()
+        {
+            PaletteLight = new PaletteLight()
+            {
+                Primary = "#005290",        // Deep blue (Optimizely-style)
+                Secondary = "#00AEEF",      // Light blue
+                Tertiary = "#FFD600",       // Accent yellow if needed
+                Background = "#F5F8FA",
+                AppbarBackground = "#003f73",
+                DrawerBackground = "#ffffff",
+                Surface = "#ffffff",
+                TextPrimary = "#1E1E1E",
+                TextSecondary = "#444444",
+                ActionDefault = "#005290"
+            },
+            PaletteDark = new PaletteDark()
+            {
+                Primary = "#4FC3F7",
+                Secondary = "#81D4FA",
+                Background = "#1E1E2F",
+                AppbarBackground = "#1A1A2F",
+                DrawerBackground = "#27293D",
+                Surface = "#2E2F3E",
+                TextPrimary = "#FFFFFF",
+                TextSecondary = "#CCCCCC"
+            },
+            Typography = new Typography()
+            {
+                Default = new DefaultTypography()
+                {
+                    FontFamily = new[] { "Segoe UI", "Helvetica", "Arial", "sans-serif" },
+                },
+                H1 = new H1Typography
+                {
+                    FontFamily = new[] { "Segoe UI", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "3rem",
+                    FontWeight = "600"
+                },
+                Body1 = new Body1Typography
+                {
+                    FontFamily = new[] { "Segoe UI", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "1rem"
+                }
+            },
+
+            LayoutProperties = new LayoutProperties
+            {
+                DefaultBorderRadius = "8px"
+            }
+        };
+}

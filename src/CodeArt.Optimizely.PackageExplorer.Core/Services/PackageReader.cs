@@ -13,6 +13,11 @@ public class PackageReader
         _zip = new ZipPackage(packagePath);
     }
 
+    public PackageReader(Stream stream)
+    {
+        _zip = new ZipPackage(stream);
+    }
+
     public List<ContentItem> GetContentItems()
     {
         var xml = _zip.ReadXmlFile("epix.xml");
