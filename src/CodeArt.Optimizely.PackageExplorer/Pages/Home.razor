@@ -82,8 +82,8 @@
                                                     </MudText>
                                                 </CellTemplate>
                                             </TemplateColumn>  
-                                            <PropertyColumn Property="x => x.Value" Title="Value" />
-                                            <TemplateColumn T="ContentProperty" Title="Value">
+@*                                             <PropertyColumn Property="x => x.Value" Title="Value" />
+ *@                                            <TemplateColumn T="ContentProperty" Title="Value">
                                                 <CellTemplate Context="property">
                                                     @if(property.Item.TypeName=="EPiServer.SpecializedProperties.PropertyXhtmlString"){
                                                         <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
