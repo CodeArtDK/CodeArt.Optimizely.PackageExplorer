@@ -189,7 +189,7 @@
             contentTypes = packageReader.GetContentTypes();
             hierarchy = ContentItemEnricher.EnrichContentItems(contentItems);
             StatusMessage = $"Loaded {file.Name} , Size: {FormatFileSize(file.Size)}";
-            await JS.InvokeVoidAsync("if(window.Prism) Prism.highlightAll();");
+           // await JS.InvokeVoidAsync("if(window.Prism) Prism.highlightAll();");
 
 
         }
