@@ -15,14 +15,34 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public List<ContentTypeDefinition>? ContentTypes { get; private set; }
         public List<CategoryDefinition>? Categories { get; private set; }
 
+        public byte[]? LoadBlobBytes(string blobReference)
+        {
+            return packageReader.LoadBlobBytes(blobReference);
+        }
+
+
+        public ContentTypeDefinition? GetContentTypeFromContent(ContentItem item)
+        {
+            return ContentTypes.FirstOrDefault(c => c.Guid.ToString() == item.ContentTypeId);
+        }
+        public string GetBlobMimetype(string blobReference)
+        {
+            return MimeTypes.GetMimeType(blobReference);
+        }
+
         public async Task LoadPackage(Stream stream)
         {
             // Load the package from the stream
             this.stream = stream;
+            await Task.Yield(); // Let the spinner render
             packageReader = new PackageReader(stream);
+            await Task.Yield(); // Let the spinner render
             ContentItems = packageReader.GetContentItems();
+            await Task.Yield(); // Let the spinner render
             ContentTypes = packageReader.GetContentTypes();
+            await Task.Yield(); // Let the spinner render
             Categories = packageReader.GetCategories();
+            await Task.Yield(); // Let the spinner render
             Tabs = packageReader.GetTabs();
             Hierarchy = ContentItemEnricher.EnrichContentItems(ContentItems);
 

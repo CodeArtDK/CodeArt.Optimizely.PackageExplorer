@@ -68,7 +68,7 @@
                     <ContentTypeView />
                 </MudTabPanel>
 
-                <MudTabPanel Text="Media" Visible="false">
+                <MudTabPanel Text="Media" >
                     <MediaView/>
                 </MudTabPanel>
 
@@ -99,7 +99,7 @@
         try
         {
             using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000);
-            using var memoryStream = new MemoryStream();
+            var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
             await package.LoadPackage(memoryStream);

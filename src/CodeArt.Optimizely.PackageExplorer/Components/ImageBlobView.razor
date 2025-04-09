@@ -1,0 +1,32 @@
+﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@inject IJSRuntime JS;
+@inject PackageService package;
+
+@if(BlobReference!=null){
+    <MudImage Src="@blobUrl" Style="max-width:100%"/>
+}
+
+@code {
+
+    [Parameter]
+    public string? BlobReference{ get; set; }
+
+    private string blobUrl;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        //Lookup blobreference and get bytes and mimetype
+        var mimetype = package.GetBlobMimetype(BlobReference);
+        var blobBytes = package.LoadBlobBytes(BlobReference);
+        if (blobBytes != null)
+        {
+            blobUrl = await FetchBlobUrl(blobBytes, mimetype);
+        }
+    }
+    private async Task<string> FetchBlobUrl(byte[] bytes, string mimetype){
+        return await JS.InvokeAsync<string>("createBlobUrl", bytes, mimetype);
+
+    }
+
+}

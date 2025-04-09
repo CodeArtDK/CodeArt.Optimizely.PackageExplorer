@@ -1,11 +1,14 @@
-﻿using System.IO.Compression;
+﻿using System.IO;
+using System.IO.Compression;
 using System.Xml.Linq;
 
 namespace CodeArt.Optimizely.PackageExplorer.Core.Services;
 
 public class ZipPackage : IDisposable
 {
-    private readonly ZipArchive _zipArchive;
+    private ZipArchive _zipArchive;
+
+    private Stream zipStream;
 
     public ZipPackage(string path)
     {
@@ -15,6 +18,7 @@ public class ZipPackage : IDisposable
 
     public ZipPackage(Stream stream)
     {
+        zipStream = stream;
         _zipArchive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
     }
 
@@ -25,6 +29,20 @@ public class ZipPackage : IDisposable
 
         using var stream = entry.Open();
         return XDocument.Load(stream);
+    }
+
+    public byte[]? LoadBlobBytes(string blobReference)
+    {
+
+        var file = _zipArchive.Entries.FirstOrDefault(f => f.FullName.Replace("/","")==blobReference.Replace("/",""));
+        if (file != null)
+        {
+            
+            using var stream = file.Open();
+            BinaryReader br = new BinaryReader(stream);
+            return br.ReadBytes((int) file.Length);
+        }
+        return null;
     }
 
     public void Dispose()

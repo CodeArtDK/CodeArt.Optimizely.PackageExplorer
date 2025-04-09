@@ -18,6 +18,11 @@ public class PackageReader
         _zip = new ZipPackage(stream);
     }
 
+    public byte[]? LoadBlobBytes(string blobReference)
+    {
+        return _zip.LoadBlobBytes(blobReference);
+    }
+
     public List<ContentItem> GetContentItems()
     {
         var xml = _zip.ReadXmlFile("epix.xml");

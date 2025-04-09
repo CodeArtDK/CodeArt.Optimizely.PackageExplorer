@@ -3,7 +3,7 @@
 
 public class ContentItem
 {
-    private string? TryGetProperty(string key)
+    public string? TryGetProperty(string key)
     {
         if (Properties == null) return null;
         return Properties.FirstOrDefault(p => p.Name == key)?.Value;

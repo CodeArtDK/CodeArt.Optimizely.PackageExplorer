@@ -1,6 +1,6 @@
 ﻿@using CodeArt.Optimizely.PackageExplorer.Services
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
-
+@inject IJSRuntime JS;
 @inject PackageService package;
 
 <MudCard>
@@ -10,6 +10,10 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
+        @if(package.GetContentTypeFromContent(Item).Base=="Image"){
+            <ImageBlobView BlobReference="@Item.TryGetProperty("BinaryData")" />
+        }
+
         <MudDataGrid Items="@Item.Properties" Dense="true">
             <Columns>
                 <TemplateColumn T="ContentProperty">
@@ -17,9 +21,9 @@
                         @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID == 0)
                         {
                             <MudBadge Color="Color.Info"
-                                      Variant="Variant.Outlined"
-                                      Class="mr-2"
-                                      Content="@("System")" />
+                            Variant="Variant.Outlined"
+                            Class="mr-2"
+                            Content="@("System")" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -58,5 +62,12 @@
 
     [Parameter]
     public ContentItem Item { get; set; }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender){
+            await JS.InvokeVoidAsync("Prism.highlightAll");
+        }
+    }
 
 }

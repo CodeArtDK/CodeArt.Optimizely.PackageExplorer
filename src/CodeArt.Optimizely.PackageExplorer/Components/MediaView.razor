@@ -3,4 +3,22 @@
 
 @inject PackageService package;
 
-<MudText>Files will appear here.</MudText>
+<MudGrid GutterSize="16px">
+    @foreach (var item in package.ContentItems.Where(ci => ci.TryGetProperty("BinaryData")!=null && package.GetContentTypeFromContent(ci)?.Base=="Image"))
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudCard Class="h-100">
+                <ImageBlobView BlobReference="@(item.TryGetProperty("BinaryData"))"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle1" GutterBottom="true">@item.Name</MudText>
+                    <MudText Typo="Typo.body2">@item.ContentTypeName</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    @* <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="() => ViewItem(item)">
+                        View
+                    </MudButton> *@
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
