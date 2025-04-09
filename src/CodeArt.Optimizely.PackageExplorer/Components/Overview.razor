@@ -1,0 +1,20 @@
+﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+<MudGrid Justify="Justify.Center" Class="mt-6 mb-6">
+    <MudItem xs="12" md="6">
+        <MudChart ChartType="ChartType.Donut" LegendPosition="@Position.Bottom" Width="300px" Height="300px"
+                  InputData="@groups.Select(g => (double) g.Count()).ToArray()" InputLabels="@groups.Select(g => g.Key).ToArray()">
+        </MudChart>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+
+    private IEnumerable<IGrouping<string, ContentItem>> groups => package.ContentItems.GroupBy(ci => ci.ContentTypeName);
+    
+
+}

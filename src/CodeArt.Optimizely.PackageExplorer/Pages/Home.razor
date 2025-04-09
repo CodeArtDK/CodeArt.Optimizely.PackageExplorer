@@ -1,10 +1,13 @@
 ﻿@page "/"
 @page "/upload"
+@using CodeArt.Optimizely.PackageExplorer.Components
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
 @using CodeArt.Optimizely.PackageExplorer.Core.Services
+@using CodeArt.Optimizely.PackageExplorer.Services
 @using Microsoft.AspNetCore.Components.Forms
 @inject ILogger<Home> Logger
 @inject IJSRuntime JS
+@inject PackageService package;
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudPaper Class="m-4 p-4 mt-12">
@@ -42,110 +45,31 @@
             </div>
         }
 
-        @if (contentItems != null)
+        @if (package.ContentItems != null)
         {
             <!-- Tabs for content -->
-            <MudTabs Class="mt-4" Rounded="true">
-                <MudTabPanel Text="@($"Content ({contentItems.Count})")">
-                    <MudDataGrid Items="@contentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" >
-                        <Columns>
-                            <HierarchyColumn T="ContentItem" />
-                            <PropertyColumn Property="x => x.PageURLSegment" Title="URL Segment"/>
-                            <PropertyColumn Property="x => x.Name" Title="Name" />
-                            <PropertyColumn Property="x => x.ContentTypeName" Title="Content Type" />
-                            <PropertyColumn Property="x => x.PageStartPublish" Title="Start Publish" />
-                            <PropertyColumn Property="x => x.PageLanguageBranch" Title="Language" />
-                            <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" />
-                        </Columns>
-                        <ChildRowContent>
-                            <MudCard>
-                                <MudCardHeader>
-                                    <CardHeaderContent>
-                                        <MudText Typo="Typo.h6">@("["+context.Item.ContentTypeName+"] "+ context.Item.Name)</MudText>
-                                    </CardHeaderContent>
-                                </MudCardHeader>
-                                <MudCardContent>
-                                    <MudDataGrid Items="@context.Item.Properties" Dense="true">
-                                        <Columns>
+            <MudTabs Class="mt-4" Rounded="true" Outlined="true">
 
-                                            <TemplateColumn T="ContentProperty" Title="Name">
-                                                <CellTemplate Context="property">
-                                                    <MudText>
-                                                        @property.Item.Name
-                                                        @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID==0)
-                                                        {
-                                                            <MudBadge Color="Color.Info"
-                                                            Variant="Variant.Outlined"
-                                                            Class="ml-2"
-                                                            Content="@("System")" />
-                                                        }
-                                                    </MudText>
-                                                </CellTemplate>
-                                            </TemplateColumn>  
-@*                                             <PropertyColumn Property="x => x.Value" Title="Value" />
- *@                                            <TemplateColumn T="ContentProperty" Title="Value">
-                                                <CellTemplate Context="property">
-                                                    @if(property.Item.TypeName=="EPiServer.SpecializedProperties.PropertyXhtmlString"){
-                                                        <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+                <MudTabPanel Text="@($"Overview")">
+                    <Overview/>
 
-                                                    } else {
-                                                        <MudText>@property.Item.Value</MudText>
-                                                    }
-                                                </CellTemplate>
-                                            </TemplateColumn>
-                                        </Columns>
-                                    </MudDataGrid>
-                                </MudCardContent>
-                            </MudCard>
-                        </ChildRowContent>
-                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="@($"Content ({package.ContentItems.Count})")">
+                    <ContentTable/>
 
                 </MudTabPanel>
 
                 <MudTabPanel Text="Content Tree">
-                    <MudText>Content Tree will appear here.</MudText>
-                    @*                 <MudGrid>
-                    <MudItem xs="12" md="4">
-                        <MudPaper Class="p-2">
-                              <MudTreeView T="ContentItem"
-                                     Items="@ContentTree"
-                                     Hover="true"
-                                     @bind-SelectedValue="_selectedContent"
-                                     SelectedValueChanged="OnContentSelected">
-                            <TreeItemTemplate>
-                                @context.Name
-                            </TreeItemTemplate>
-                        </MudTreeView> 
-                        </MudPaper>
-                    </MudItem>
-                    <MudItem xs="12" md="8">
-
-                    </MudItem>
-                </MudGrid> *@
+                    <ContentTree/>
                 </MudTabPanel>
 
-                <MudTabPanel Text="Content Types">
-                    @if (contentTypes?.Any() == true)
-                    {
-                        <MudList T="ContentTypeDefinition" Dense="true" Class="mt-2">
-                            @foreach (var type in contentTypes)
-                            {
-                                <MudListItem>
-                                    <MudText Typo="Typo.subtitle1">@type.Name</MudText>
-                                </MudListItem>
-                            }
-                        </MudList>
-                    }
-                    else
-                    {
-                        <MudText Color="Color.Secondary" Class="mt-2">
-                            No content types found.
-                        </MudText>
-                    }
+                <MudTabPanel Text="@($"Content Types ({package.ContentTypes.Count})")">
+                    <ContentTypeView />
                 </MudTabPanel>
 
-                <MudTabPanel Text="Media">
-                    <MudText>Files will appear here.</MudText>
+                <MudTabPanel Text="Media" Visible="false">
+                    <MediaView/>
                 </MudTabPanel>
 
                 <MudTabPanel Text="Visitor Groups" Visible="false">
@@ -153,7 +77,7 @@
                 </MudTabPanel>
 
                 <MudTabPanel Text="Categories" Visible="false">
-                    <MudText>Categories will appear here.</MudText>
+                    <CategoryView/>
                 </MudTabPanel>
             </MudTabs>
         }
@@ -164,12 +88,6 @@
 @code {
     private string StatusMessage;
     private InputFile? fileInput;
-    private PackageReader packageReader;
-    private List<ContentItem> contentItems;
-    private List<ContentTypeDefinition> contentTypes;
-    private List<MediaContentItem> mediaContentItems;
-
-    private List<HierarchicalContentItem> hierarchy;
     private bool _isLoading = false;
 
 
@@ -184,13 +102,8 @@
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-            packageReader = new PackageReader(memoryStream);
-            contentItems = packageReader.GetContentItems();
-            contentTypes = packageReader.GetContentTypes();
-            hierarchy = ContentItemEnricher.EnrichContentItems(contentItems);
-            StatusMessage = $"Loaded {file.Name} , Size: {FormatFileSize(file.Size)}";
+            await package.LoadPackage(memoryStream);
            // await JS.InvokeVoidAsync("if(window.Prism) Prism.highlightAll();");
-
 
         }
         catch (Exception ex)

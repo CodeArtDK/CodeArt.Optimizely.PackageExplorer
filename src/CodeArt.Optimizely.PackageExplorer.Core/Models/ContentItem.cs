@@ -81,6 +81,14 @@ public class ContentItem
         }
     }
 
+    public string? EPiSystemReference
+    {
+        get
+        {
+            return TryGetProperty("EPi:SystemReference");
+        }
+    }
+
     public DateTime? PageStartPublish
     {
         get

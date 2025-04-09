@@ -1,4 +1,5 @@
 ﻿using CodeArt.Optimizely.PackageExplorer.Core.Models;
+using System.Globalization;
 using System.Xml.Linq;
 
 namespace CodeArt.Optimizely.PackageExplorer.Core.Services;
@@ -44,20 +45,29 @@ public static class ContentTypeParser
                 Id = (int)type.Element("ID"),
                 Guid = Guid.Parse((string)type.Element("GUID")),
                 Name = (string?)type.Element("Name") ?? "",
-                Description = (string?)type.Element("Description")
+                GroupName = (string?)type.Element("GroupName"),
+                Base = (string?)type.Element("Base"),
+                ModelTypeString = (string?)type.Element("ModelTypeString"),
+                Created = (!string.IsNullOrEmpty(type.Element("Created")?.Value)) ? DateTime.Parse(type.Element("Created").Value, CultureInfo.InvariantCulture) : null,
+                Saved = (!string.IsNullOrEmpty(type.Element("Saved")?.Value)) ? DateTime.Parse(type.Element("Saved").Value, CultureInfo.InvariantCulture) : null
             };
 
-            var props = type.Element("Properties")?.Elements("PropertyDefinitionTransferObject") ?? Enumerable.Empty<XElement>();
+            var props = type.Element("PropertyDefinitions")?.Elements("PropertyDefinition") ?? Enumerable.Empty<XElement>();
             foreach (var prop in props)
             {
                 ct.Properties.Add(new ContentPropertyDefinition
                 {
                     Name = (string?)prop.Element("Name") ?? "",
-                    Type = (string?)prop.Element("Type") ?? "",
-                    TabId = (int?)prop.Element("Tab"),
+                    Type = (string?)prop.Element("Type")?.Element("Name") ?? "",
+                    DataType = (string?)prop.Element("Type")?.Element("DataType")?.Value,
+                    TabId = (int?)prop.Element("Tab")?.Element("ID"),
                     IsRequired = (bool?)prop.Element("Required") ?? false,
                     IsSearchable = (bool?)prop.Element("Searchable") ?? false,
-                    IsLocalizable = (bool?)prop.Element("LanguageSpecific") ?? false
+                    IsLocalizable = (bool?)prop.Element("LanguageSpecific") ?? false,
+                    FieldOrder = (int?)prop.Element("FieldOrder") ?? 0,
+                    EditCaption = (string?)prop.Element("EditCaption")?.Value,
+                    DisplayEditUI = (bool?)prop.Element("DisplayEditUI") ?? false,
+                    ExistsOnModel = (bool?)prop.Element("ExistsOnModel") ?? false
                 });
             }
 
@@ -65,5 +75,28 @@ public static class ContentTypeParser
         }
 
         return types;
+    }
+
+    public static List<CategoryDefinition> ParseCategories(XDocument doc)
+    {
+        var categories = new List<CategoryDefinition>();
+
+        var categoryElements = doc
+            .Descendants("ArrayOfCategory")
+            .Descendants("Category");
+
+        foreach (var category in categoryElements)
+        {
+            categories.Add(new CategoryDefinition
+            {
+                Id = (int)category.Element("ID"),
+                Name = (string?)category.Element("Name"),
+                Description = (string?)category.Element("Description"),
+                ParentId = (int?)category.Element("ParentID"),
+                Selectable = (bool?)category.Element("Selectable")
+            });
+        }
+
+        return categories;
     }
 }

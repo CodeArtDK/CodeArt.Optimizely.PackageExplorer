@@ -1,0 +1,62 @@
+﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">@("[" + Item.ContentTypeName + "] " + Item.Name)</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudDataGrid Items="@Item.Properties" Dense="true">
+            <Columns>
+                <TemplateColumn T="ContentProperty">
+                    <CellTemplate Context="property">
+                        @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID == 0)
+                        {
+                            <MudBadge Color="Color.Info"
+                                      Variant="Variant.Outlined"
+                                      Class="mr-2"
+                                      Content="@("System")" />
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn T="ContentProperty" Title="Name">
+                    <CellTemplate Context="property">
+
+                        <MudText>
+
+                            @property.Item.Name
+
+                        </MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn T="ContentProperty" Title="Value">
+                    <CellTemplate Context="property">
+                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                        {
+                            <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+
+                        }
+                        else
+                        {
+                            <MudText>@property.Item.Value</MudText>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </MudCardContent>
+</MudCard>
+
+
+
+
+@code {
+
+    [Parameter]
+    public ContentItem Item { get; set; }
+
+}

@@ -4,8 +4,6 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
-
 
         PackageReader packageReader = new PackageReader("..\\..\\..\\..\\..\\Samples\\DefaultSiteContent.episerverdata");
 
@@ -17,6 +15,8 @@ internal class Program
 
         var tabs = packageReader.GetTabs();
         var contentTypes = packageReader.GetContentTypes();
+
+        var cats = packageReader.GetCategories();
 
     }
 }

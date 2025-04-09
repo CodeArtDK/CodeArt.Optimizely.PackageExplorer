@@ -1,0 +1,123 @@
+﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+<MudGrid Justify="Justify.Center" Class="mt-6 mb-6">
+    <MudItem xs="12" md="4">
+        <MudPaper Class="p-2">
+
+            <MudTreeView T="ContentItem" Items="initialTreeItems" Hover="true" ServerData="LoadServerData" SelectionMode="SelectionMode.SingleSelection" @bind-SelectedValue="selectedItem">
+                <ItemTemplate>
+                    <MudTreeViewItem Value="@context.Value" Text="@context.Text"
+                    Items="@context.Children"
+                    ItemsChanged="@(new Action<IReadOnlyCollection<TreeItemData<ContentItem>>>(items => OnItemsLoaded(context, items)))"
+                    @bind-Expanded="@context.Expanded"
+                    CanExpand="@context.Expandable"
+                    Icon="@context.Icon"
+                    LoadingIconColor="Color.Info" />
+                </ItemTemplate>
+            </MudTreeView> 
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="8">
+        @if (selectedItem != null)
+        {
+            <ContentDetails Item="selectedItem"/>   
+        }
+    </MudItem>
+</MudGrid> 
+
+@code{
+
+
+    private Dictionary<string, ContentItem> contentDic = new Dictionary<string, ContentItem>();
+    private List<string> ownerLst = new List<string>();
+    private ContentItem? selectedItem;
+
+    private List<TreeItemData<ContentItem>> initialTreeItems = new List<TreeItemData<ContentItem>>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        contentDic=package.ContentItems!.ToDictionary(ci => ci.ContentLink!, ci => ci);
+        ownerLst = package.ContentItems!.Where(ci => ci.ContentAssetsID!=null).Select(ci => ci.ContentAssetsID.Replace("-","")).Distinct().ToList();
+        initialTreeItems = package.ContentItems.Where(ci =>
+            !contentDic.ContainsKey(ci.ParentLink)
+            && !ownerLst.Contains(ci.PageURLSegment)
+            && ci.EPiSystemReference != "EPi:GlobalResourcesRoot"
+        ).Select(ci => CreateTreeItem(ci)).ToList();
+
+        var globalRoot = new TreeItemData<ContentItem>
+            {
+                Text = "[Global Resource Root]",
+                Value = new ContentItem(),
+                Expandable = true,
+                Icon = Icons.Material.Filled.Folder,
+                Children = package.ContentItems.Where(ci => ci.EPiSystemReference == "EPi:GlobalResourcesRoot").Select(ci => CreateTreeItem(ci)).ToList()
+            };
+        initialTreeItems.Add(globalRoot);
+    }
+
+    private TreeItemData<ContentItem> CreateTreeItem(ContentItem item)
+    {
+        var tp = package.ContentTypes?.FirstOrDefault(ct => ct.Guid.ToString() == item.ContentTypeId);
+        string? icon = null;
+        if(item.ContentTypeName=="SysContentFolder" || item.ContentTypeName == "SysContentAssetFolder")
+        {
+            icon = Icons.Material.Filled.Folder;
+        }
+        if (tp != null)
+        {
+            if (tp.Base == "Image")
+            {
+                icon = Icons.Material.Filled.Image;
+            } else if(tp.Base == "Page")
+            {
+                icon = Icons.Material.Filled.Pages;
+            } else if(tp.Base == "Video")
+            {
+                icon = Icons.Material.Filled.Videocam;
+            } else if(tp.Base == "Block")
+            {
+                icon = Icons.Material.Filled.Window;
+            } else if(tp.Base == "Media")
+            {
+                icon = Icons.Material.Filled.FileOpen;
+            }
+
+        }
+        var treeItem = new TreeItemData<ContentItem>
+            {
+                Text = item.Name,
+                Value = item,
+                Expandable = true,
+                Icon = icon
+            };
+        return treeItem;
+    }
+
+    public async Task<IReadOnlyCollection<TreeItemData<ContentItem>>> LoadServerData(ContentItem itm)
+    {
+        var lst = new List<TreeItemData<ContentItem>>();
+        if (!string.IsNullOrEmpty(itm.ContentAssetsID))
+        {
+            var assetfolder = package.ContentItems.FirstOrDefault(c => c.PageURLSegment == itm.ContentAssetsID.Replace("-",""));
+            if (assetfolder != null)
+            {
+                var itmFolder = CreateTreeItem(assetfolder);
+                itmFolder.Text = "[For this content]";
+                itmFolder.Icon = Icons.Material.Filled.Folder;
+                lst.Add(itmFolder);
+            }
+        }
+        lst.AddRange(package.ContentItems!.Where(c => c.ParentLink == itm.ContentLink).Select(c => CreateTreeItem(c)));
+        return lst;
+    }
+
+    private void OnItemsLoaded(TreeItemData<ContentItem> treeItemData, IReadOnlyCollection<TreeItemData<ContentItem>> children)
+    {
+        // here we store the server-loaded children in the treeItemData so that they are available in the InitialTreeItems
+        // if you don't do this you loose already loaded children on next render update
+        treeItemData.Children = children?.ToList();
+    }
+}

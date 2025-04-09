@@ -35,5 +35,11 @@ public class PackageReader
         return ContentTypeParser.ParseContentTypes(xml);
     }
 
+    public List<CategoryDefinition> GetCategories()
+    {
+        var xml = _zip.ReadXmlFile("epiDefinition.xml");
+        return ContentTypeParser.ParseCategories(xml);
+    }
+
     // Add methods for media, visitor groups, etc.
 }

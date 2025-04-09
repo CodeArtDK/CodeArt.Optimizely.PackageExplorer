@@ -1,0 +1,78 @@
+﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+@if (package.ContentTypes?.Any() == true)
+{
+    <MudDataGrid Items="@package.ContentTypes" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single">
+        <Columns>
+            <HierarchyColumn T="ContentTypeDefinition" />
+            <PropertyColumn Property="x => x.GroupName" Title="Group"/>
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.Base" Title="Base" />
+            <PropertyColumn Property="x => x.ModelTypeString" Title="Model Type" />
+            <PropertyColumn Property="x => x.Properties.Count" Title="# Properties" />
+        </Columns>
+        <ChildRowContent>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">@context.Item.Name</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Type"/>
+                            <PropertyColumn Property="x => x.Name" Title="Name"/>
+                            <PropertyColumn Property="x => x.EditCaption" Title="Edit Caption"/>
+                            <TemplateColumn Title="Searchable">
+                                <CellTemplate Context="item">
+                                    @if (item.Item.IsSearchable)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Required">
+                                <CellTemplate Context="item">
+                                    @if (item.Item.IsRequired)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Localizable">
+                                <CellTemplate Context="item">
+                                    @if (item.Item.IsLocalizable)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                    </MudDataGrid>
+                </MudCardContent>
+            </MudCard>
+        </ChildRowContent>
+     </MudDataGrid>
+}
+else
+{
+    <MudText Color="Color.Secondary" Class="mt-2">
+        No content types found.
+    </MudText>
+}
