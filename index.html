@@ -11,7 +11,6 @@
     <link href="manifest.webmanifest" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="css/prism.css" rel="stylesheet" />
     <style>
@@ -48,6 +47,16 @@
             background-color: #e8f0fe; /* light blue background */
             font-style: italic;
         }
+
+        pre code {
+            display: block;
+            overflow-x: auto;
+            padding: 1rem;
+            white-space: pre;
+            word-break: normal;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 
@@ -66,8 +75,17 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
-    <script src="css/prism.js"></script>
-
+    <script src="js/prism.js"></script>
+    <script>
+        window.highlightCode = function () {
+            if (window.Prism && Prism.highlightAll) {
+                Prism.highlightAll();
+            } else {
+                console.warn("Prism not loaded");
+            }
+        };
+    </script>
+    <script src="js/media.js"></script>
 </body>
 
 </html>
