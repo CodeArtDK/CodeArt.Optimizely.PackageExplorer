@@ -8,6 +8,11 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h6">@("[" + Item.ContentTypeName + "] " + Item.Name)</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            <MudTooltip Text="Double-click on a property value to edit it">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
+            </MudTooltip>
+        </CardHeaderActions>
     </MudCardHeader>
     <MudCardContent>
         @if(package.GetContentTypeFromContent(Item).Base=="Image"){
@@ -45,7 +50,7 @@
                         </MudText>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Value">
+                <TemplateColumn T="ContentProperty" Title="Value (double-click to edit)">
                     <CellTemplate Context="property">
                         @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
                         {

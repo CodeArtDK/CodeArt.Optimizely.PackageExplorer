@@ -36,6 +36,11 @@
                     <CardHeaderContent>
                         <MudText Typo="Typo.h6">@context.Item.Name</MudText>
                     </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudTooltip Text="Double-click on Edit Caption, Searchable, Required, or Localizable cells to edit">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
+                        </MudTooltip>
+                    </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
                     <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true" 
@@ -43,7 +48,7 @@
                         <Columns>
                             <PropertyColumn Property="x => x.Type"/>
                             <PropertyColumn Property="x => x.Name" Title="Name"/>
-                            <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption">
+                            <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption (editable)">
                                 <CellTemplate Context="item">
                                     <MudText>@item.Item.EditCaption</MudText>
                                 </CellTemplate>
@@ -53,7 +58,7 @@
                                                 ValueChanged="@((string val) => { item.Item.EditCaption = val; OnPropertyFieldChanged(context.Item, item.Item, "EditCaption", val); })" />
                                 </EditTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Searchable">
+                            <TemplateColumn Title="Searchable (editable)">
                                 <CellTemplate Context="item">
                                     @if (item.Item.IsSearchable)
                                     {
@@ -71,7 +76,7 @@
                                                ValueChanged="@((bool val) => { item.Item.IsSearchable = val; OnPropertyFieldChanged(context.Item, item.Item, "IsSearchable", val); })" />
                                 </EditTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Required">
+                            <TemplateColumn Title="Required (editable)">
                                 <CellTemplate Context="item">
                                     @if (item.Item.IsRequired)
                                     {
@@ -89,7 +94,7 @@
                                                ValueChanged="@((bool val) => { item.Item.IsRequired = val; OnPropertyFieldChanged(context.Item, item.Item, "IsRequired", val); })" />
                                 </EditTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Localizable">
+                            <TemplateColumn Title="Localizable (editable)">
                                 <CellTemplate Context="item">
                                     @if (item.Item.IsLocalizable)
                                     {
