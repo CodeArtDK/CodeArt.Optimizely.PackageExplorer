@@ -15,7 +15,7 @@
                     <MudIcon Icon="@Icons.Material.Filled.Code" />
                     <div>
                         <MudText Typo="Typo.body1">JSON</MudText>
-                        <MudText Typo="Typo.caption">Export as JSON format with all properties</MudText>
+                        <MudText Typo="Typo.caption">Export as JSON format</MudText>
                     </div>
                 </MudStack>
             </MudRadio>
@@ -24,15 +24,34 @@
                     <MudIcon Icon="@Icons.Material.Filled.TableChart" />
                     <div>
                         <MudText Typo="Typo.body1">CSV</MudText>
-                        <MudText Typo="Typo.caption">Export as CSV format with key properties</MudText>
+                        <MudText Typo="Typo.caption">Export as CSV format</MudText>
                     </div>
                 </MudStack>
             </MudRadio>
         </MudRadioGroup>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.body1" Class="mb-2">
+            Select properties to export:
+        </MudText>
+
+        <MudStack Row="true" Class="mb-2">
+            <MudButton Size="Size.Small" OnClick="SelectAllProperties" Variant="Variant.Text">Select All</MudButton>
+            <MudButton Size="Size.Small" OnClick="DeselectAllProperties" Variant="Variant.Text">Deselect All</MudButton>
+        </MudStack>
+
+        <MudPaper Class="pa-2" Style="max-height: 300px; overflow-y: auto;">
+            @foreach (var prop in availableProperties)
+            {
+                <MudCheckBox @bind-Value="@selectedProperties[prop]" Label="@prop" Color="Color.Primary" Dense="true" />
+            }
+        </MudPaper>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Export" Disabled="@(string.IsNullOrEmpty(selectedFormat))">
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Export" 
+                   Disabled="@(string.IsNullOrEmpty(selectedFormat) || !selectedProperties.Any(x => x.Value))">
             Export
         </MudButton>
     </DialogActions>
@@ -49,10 +68,64 @@
     public int ItemCount { get; set; }
 
     private string selectedFormat = "json";
+    private List<string> availableProperties = new();
+    private Dictionary<string, bool> selectedProperties = new();
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        // Get all unique property names from all items
+        var allPropertyNames = Items
+            .SelectMany(item => item.Properties)
+            .Select(prop => prop.Name)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToList();
+
+        availableProperties = allPropertyNames;
+        
+        // Initialize with common properties selected by default
+        var defaultProperties = new HashSet<string>
+        {
+            "PageLink", "PageName", "PageTypeName", "PageParentLink", 
+            "PageURLSegment", "PageLanguageBranch", "PageMasterLanguageBranch", 
+            "PageStartPublish"
+        };
+
+        selectedProperties = allPropertyNames.ToDictionary(
+            prop => prop,
+            prop => defaultProperties.Contains(prop)
+        );
+    }
+
+    private void SelectAllProperties()
+    {
+        foreach (var key in selectedProperties.Keys.ToList())
+        {
+            selectedProperties[key] = true;
+        }
+    }
+
+    private void DeselectAllProperties()
+    {
+        foreach (var key in selectedProperties.Keys.ToList())
+        {
+            selectedProperties[key] = false;
+        }
+    }
 
     private async Task Export()
     {
         if (Items == null || !Items.Any())
+        {
+            MudDialog?.Close();
+            return;
+        }
+
+        var selectedPropNames = selectedProperties.Where(x => x.Value).Select(x => x.Key).ToList();
+        
+        if (!selectedPropNames.Any())
         {
             MudDialog?.Close();
             return;
@@ -64,13 +137,13 @@
 
         if (selectedFormat == "json")
         {
-            fileContent = exportService.ExportToJson(Items);
+            fileContent = exportService.ExportToJson(Items, selectedPropNames);
             fileName = $"content-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
             contentType = "application/json";
         }
         else if (selectedFormat == "csv")
         {
-            fileContent = exportService.ExportToCsv(Items);
+            fileContent = exportService.ExportToCsv(Items, selectedPropNames);
             fileName = $"content-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
             contentType = "text/csv";
         }
