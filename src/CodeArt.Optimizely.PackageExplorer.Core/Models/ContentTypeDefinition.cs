@@ -38,7 +38,7 @@ public class ContentPropertyDefinition
     public bool IsLocalizable { get; set; }
     public string? DataType { get; internal set; }
     public int FieldOrder { get; internal set; }
-    public string? EditCaption { get; internal set; }
+    public string? EditCaption { get; set; }
     public bool DisplayEditUI { get; internal set; }
     public bool ExistsOnModel { get; internal set; }
 

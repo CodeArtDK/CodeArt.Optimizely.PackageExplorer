@@ -38,11 +38,21 @@
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true">
+                    <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true" 
+                                 EditMode="DataGridEditMode.Cell">
                         <Columns>
                             <PropertyColumn Property="x => x.Type"/>
                             <PropertyColumn Property="x => x.Name" Title="Name"/>
-                            <PropertyColumn Property="x => x.EditCaption" Title="Edit Caption"/>
+                            <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption">
+                                <CellTemplate Context="item">
+                                    <MudText>@item.Item.EditCaption</MudText>
+                                </CellTemplate>
+                                <EditTemplate Context="item">
+                                    <MudTextField Value="item.Item.EditCaption"
+                                                Variant="Variant.Outlined"
+                                                ValueChanged="@((string val) => { item.Item.EditCaption = val; OnPropertyFieldChanged(context.Item, item.Item, "EditCaption", val); })" />
+                                </EditTemplate>
+                            </TemplateColumn>
                             <TemplateColumn Title="Searchable">
                                 <CellTemplate Context="item">
                                     @if (item.Item.IsSearchable)
@@ -54,6 +64,12 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
                                     }
                                 </CellTemplate>
+                                <EditTemplate Context="item">
+                                    <MudCheckBox Value="item.Item.IsSearchable" 
+                                               Color="Color.Primary"
+                                               T="bool"
+                                               ValueChanged="@((bool val) => { item.Item.IsSearchable = val; OnPropertyFieldChanged(context.Item, item.Item, "IsSearchable", val); })" />
+                                </EditTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="Required">
                                 <CellTemplate Context="item">
@@ -66,6 +82,12 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
                                     }
                                 </CellTemplate>
+                                <EditTemplate Context="item">
+                                    <MudCheckBox Value="item.Item.IsRequired" 
+                                               Color="Color.Primary"
+                                               T="bool"
+                                               ValueChanged="@((bool val) => { item.Item.IsRequired = val; OnPropertyFieldChanged(context.Item, item.Item, "IsRequired", val); })" />
+                                </EditTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="Localizable">
                                 <CellTemplate Context="item">
@@ -78,6 +100,12 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
                                     }
                                 </CellTemplate>
+                                <EditTemplate Context="item">
+                                    <MudCheckBox Value="item.Item.IsLocalizable" 
+                                               Color="Color.Primary"
+                                               T="bool"
+                                               ValueChanged="@((bool val) => { item.Item.IsLocalizable = val; OnPropertyFieldChanged(context.Item, item.Item, "IsLocalizable", val); })" />
+                                </EditTemplate>
                             </TemplateColumn>
                         </Columns>
                     </MudDataGrid>
@@ -100,6 +128,12 @@ else
     private void DeleteContentType(ContentTypeDefinition contentType)
     {
         package.DeleteContentType(contentType);
+        StateHasChanged();
+    }
+    
+    private void OnPropertyFieldChanged(ContentTypeDefinition contentType, ContentPropertyDefinition property, string fieldName, object newValue)
+    {
+        package.UpdateContentTypeProperty(contentType, property, fieldName, newValue);
         StateHasChanged();
     }
 }

@@ -1,6 +1,6 @@
 ﻿# 🧰 CodeArt.Optimizely.PackageExplorer
 
-**CodeArt.Optimizely.PackageExplorer** is an open-source Blazor WebAssembly tool designed to open, inspect, and eventually edit [Optimizely (Episerver)](https://www.optimizely.com/) content packages (`.episerverdata`, `.episerverpackage` files) — right in your browser.
+**CodeArt.Optimizely.PackageExplorer** is an open-source Blazor WebAssembly tool designed to open, inspect, and edit [Optimizely (Episerver)](https://www.optimizely.com/) content packages (`.episerverdata`, `.episerverpackage` files) — right in your browser.
 
 > Think of it as a local, user-friendly visual explorer for Episerver content packages.
 
@@ -11,28 +11,64 @@
 - ✅ Upload and open `.episerverdata` / `.episerverpackage` files  
 - ✅ Inspect their contents in a structured UI  
 - ✅ View content, media, content types, categories, visitor groups, and more  
-- ✅ Drill down into content details and metadata using tree views and dialogs  
+- ✅ Drill down into content details and metadata using tree views and dialogs
+- ✅ **Debug malformed packages** with detailed error tracking and ZIP contents inspection
+- ✅ **Export content to JSON/CSV** with customizable property selection
+- ✅ **Delete content items, media, content types, and categories**
+- ✅ **Edit property values** in content items and content type definitions
+- ✅ **Download modified packages** after making changes
 
 All powered by [Blazor WebAssembly](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor) and [MudBlazor](https://mudblazor.com/).
 
 ---
 
+## ✨ Key Features
+
+### 📦 Package Management
+- Open and parse Optimizely content packages
+- Debug mode for troubleshooting corrupted or malformed packages
+- Detailed error reporting with stack traces and ZIP contents inspection
+- Download modified packages after editing
+
+### 🔍 Content Exploration
+- Hierarchical tree view of content structure
+- Searchable and filterable data grids
+- Property-level inspection with syntax highlighting for HTML content
+- Media preview for images
+
+### ✏️ Editing Capabilities
+- **Edit property values** in content items (inline editing in detail view)
+- **Edit content type properties** (EditCaption, IsRequired, IsSearchable, IsLocalizable)
+- **Delete content items, media, content types, and categories**
+- Visual indicators for modified and deleted items
+- Real-time modification tracking
+
+### 📤 Export Options
+- Export content to **JSON** or **CSV** formats
+- Customizable property selection for exports
+- Respects active filters and sorting
+- Batch export capabilities
+
+---
+
 ## 🛤 Roadmap
 
-The current version is focused on **read-only exploration** of package contents. But this is just the beginning:
-
-### ✅ MVP (now)
+### ✅ Completed
 - Open and parse Episerver content packages
 - Display structured UI with tabs and tree views
-- Provide insights into content hierarchy and metadata
+- Debug mode for malformed packages
+- Export content to JSON/CSV
+- Delete content items, media, content types, and categories
+- Edit property values in content and content types
+- Download modified packages
 
 ### 🛠 Coming Soon
-- ✏️ Edit packages directly in the UI
-- 🔁 Convert packages to other formats (e.g., JSON, XML, cross-CMS import formats)
+- 🔁 Convert packages to other formats (e.g., XML, cross-CMS import formats)
 - 📦 Create new packages from scratch
 - 🔍 Compare packages (diff support)
 - 🤖 CLI support for automation and scripting
-- 💾 Save/export modified packages
+- 🎨 Bulk editing operations
+- 📊 Package statistics and analytics
 
 ---
 
