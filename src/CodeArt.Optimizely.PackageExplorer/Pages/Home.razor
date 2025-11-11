@@ -47,6 +47,21 @@
 
         @if (package.ContentItems != null)
         {
+            <!-- Download button for modified package -->
+            @if (package.HasModifications)
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-4">
+                    Package has been modified. You can download the cleaned package below.
+                </MudAlert>
+                <MudButton Variant="Variant.Filled"
+                          Color="Color.Success"
+                          StartIcon="@Icons.Material.Filled.Download"
+                          OnClick="DownloadModifiedPackage"
+                          Class="mt-2">
+                    Download Modified Package
+                </MudButton>
+            }
+            
             <!-- Tabs for content -->
             <MudTabs Class="mt-4" Rounded="true" Outlined="true">
 
@@ -76,7 +91,7 @@
                     <MudText>Visitor Groups will appear here</MudText>
                 </MudTabPanel>
 
-                <MudTabPanel Text="Categories" Visible="false">
+                <MudTabPanel Text="Categories" Visible="@(package.Categories?.Any() == true)">
                     <CategoryView/>
                 </MudTabPanel>
             </MudTabs>
@@ -89,11 +104,13 @@
     private string StatusMessage;
     private InputFile? fileInput;
     private bool _isLoading = false;
+    private string? _originalFileName;
 
 
     private async Task OnFilesChanged(IBrowserFile file)
     {
         _isLoading = true;
+        _originalFileName = file.Name;
         Console.WriteLine($"File name: {file.Name}");
         StatusMessage = $"Loading {file.Name} , Size: {FormatFileSize(file.Size)}";
         try
@@ -117,6 +134,32 @@
         }
 
         Console.WriteLine($"Uploaded: {file.Name}, Size: {file.Size}");
+    }
+    
+    private async Task DownloadModifiedPackage()
+    {
+        try
+        {
+            var modifiedPackageStream = package.ExportModifiedPackage();
+            
+            using var streamRef = new DotNetStreamReference(stream: modifiedPackageStream);
+            
+            var fileName = _originalFileName ?? "package.episerverdata";
+            var modifiedFileName = fileName.Replace(".episerverdata", "_modified.episerverdata")
+                                           .Replace(".episerverpackage", "_modified.episerverpackage");
+            
+            if (modifiedFileName == fileName)
+            {
+                modifiedFileName = "modified_" + fileName;
+            }
+            
+            await JS.InvokeVoidAsync("downloadFileFromStream", modifiedFileName, streamRef);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting modified package");
+            StatusMessage = "Error exporting the modified package.";
+        }
     }
 
     public static string FormatFileSize(long bytes)
