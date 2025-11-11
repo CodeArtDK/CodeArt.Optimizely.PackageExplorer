@@ -2,11 +2,20 @@
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
 
 @inject PackageService package;
+@inject IDialogService DialogService;
 
-<MudDataGrid Items="@FilteredContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
+<MudDataGrid @ref="_dataGrid" Items="@FilteredContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Content Items</MudText>
         <MudSpacer />
+        <MudButton StartIcon="@Icons.Material.Filled.Download" 
+                   Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="OpenExportDialog"
+                   Size="Size.Small"
+                   Class="mr-2">
+            Export
+        </MudButton>
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
@@ -42,6 +51,7 @@
 
 @code{
 
+    private MudDataGrid<ContentItem> _dataGrid;
     private string _searchString;
 
     private IEnumerable<ContentItem> FilteredContentItems => 
@@ -51,6 +61,21 @@
     {
         package.DeleteContentItem(item);
         StateHasChanged();
+    }
+
+    private async Task OpenExportDialog()
+    {
+        // Get filtered and sorted items from the data grid
+        var filteredItems = _dataGrid?.FilteredItems?.ToList() ?? package.ContentItems?.ToList() ?? new List<ContentItem>();
+        
+        var parameters = new DialogParameters<ExportDialog>
+        {
+            { x => x.Items, filteredItems },
+            { x => x.ItemCount, filteredItems.Count }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        await DialogService.ShowAsync<ExportDialog>("Export Content", parameters, options);
     }
 
     private Func<ContentItem, bool> _quickFilter => x =>

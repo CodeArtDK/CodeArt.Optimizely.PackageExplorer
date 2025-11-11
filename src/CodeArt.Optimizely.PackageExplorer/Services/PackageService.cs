@@ -14,6 +14,8 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public List<HierarchicalContentItem>? Hierarchy { get; private set; }
         public List<ContentTypeDefinition>? ContentTypes { get; private set; }
         public List<CategoryDefinition>? Categories { get; private set; }
+        public PackageDebugInfo DebugInfo { get; private set; } = new();
+        public bool IsInDebugMode => DebugInfo.HasErrors;
         
         // Track deleted items
         public HashSet<string> DeletedContentIds { get; private set; } = new();
@@ -44,24 +46,144 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
 
         public async Task LoadPackage(Stream stream)
         {
-            // Load the package from the stream
+            // Reset state
             this.stream = stream;
-            await Task.Yield(); // Let the spinner render
-            packageReader = new PackageReader(stream);
-            await Task.Yield(); // Let the spinner render
-            ContentItems = packageReader.GetContentItems();
-            await Task.Yield(); // Let the spinner render
-            ContentTypes = packageReader.GetContentTypes();
-            await Task.Yield(); // Let the spinner render
-            Categories = packageReader.GetCategories();
-            await Task.Yield(); // Let the spinner render
-            Tabs = packageReader.GetTabs();
-            Hierarchy = ContentItemEnricher.EnrichContentItems(ContentItems);
+            DebugInfo = new PackageDebugInfo();
+            ContentItems = null;
+            ContentTypes = null;
+            Categories = null;
+            Tabs = null;
+            Hierarchy = null;
             
             // Reset deletion tracking when loading a new package
             DeletedContentIds.Clear();
             DeletedContentTypeGuids.Clear();
             DeletedCategoryIds.Clear();
+
+            await Task.Yield(); // Let the spinner render
+            
+            try
+            {
+                packageReader = new PackageReader(stream);
+                
+                // Get list of files in package for debug info
+                try
+                {
+                    DebugInfo.ZipEntries = packageReader.GetZipEntries();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Reading ZIP entries",
+                        Message = "Failed to read ZIP archive entries",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
+
+                // Try to load content items
+                try
+                {
+                    ContentItems = packageReader.GetContentItems();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Content Items (epix.xml)",
+                        Message = ex is FileNotFoundException ? "Required file 'epix.xml' not found in package" : "Failed to parse content items",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
+
+                // Try to load content types
+                try
+                {
+                    ContentTypes = packageReader.GetContentTypes();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Content Types (epiDefinition.xml)",
+                        Message = ex is FileNotFoundException ? "Required file 'epiDefinition.xml' not found in package" : "Failed to parse content types",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
+
+                // Try to load categories
+                try
+                {
+                    Categories = packageReader.GetCategories();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Categories (epiDefinition.xml)",
+                        Message = "Failed to parse categories",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
+
+                // Try to load tabs
+                try
+                {
+                    Tabs = packageReader.GetTabs();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Tabs (epiDefinition.xml)",
+                        Message = "Failed to parse tabs",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                // Try to build hierarchy (only if we have content items)
+                if (ContentItems != null)
+                {
+                    try
+                    {
+                        Hierarchy = ContentItemEnricher.EnrichContentItems(ContentItems);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugInfo.Errors.Add(new PackageError
+                        {
+                            Stage = "Building Content Hierarchy",
+                            Message = "Failed to build content hierarchy",
+                            Details = ex.Message,
+                            StackTrace = ex.StackTrace
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Catch-all for any unexpected errors
+                DebugInfo.Errors.Add(new PackageError
+                {
+                    Stage = "Loading Package",
+                    Message = "Unexpected error while loading package",
+                    Details = ex.Message,
+                    StackTrace = ex.StackTrace
+                });
+            }
         }
         
         public void DeleteContentItem(ContentItem item)
