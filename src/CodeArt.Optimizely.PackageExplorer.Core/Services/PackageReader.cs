@@ -23,6 +23,11 @@ public class PackageReader
         return _zip.LoadBlobBytes(blobReference);
     }
 
+    public List<string> GetZipEntries()
+    {
+        return _zip.GetZipEntries();
+    }
+
     public List<ContentItem> GetContentItems()
     {
         var xml = _zip.ReadXmlFile("epix.xml");

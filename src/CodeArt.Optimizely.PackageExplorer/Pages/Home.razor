@@ -45,6 +45,11 @@
             </div>
         }
 
+        @if (package.IsInDebugMode)
+        {
+            <PackageDebug />
+        }
+
         @if (package.ContentItems != null)
         {
             <!-- Tabs for content -->
@@ -103,13 +108,20 @@
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
             await package.LoadPackage(memoryStream);
-           // await JS.InvokeVoidAsync("if(window.Prism) Prism.highlightAll();");
-
+            
+            if (package.IsInDebugMode)
+            {
+                StatusMessage = $"Loaded {file.Name} with {package.DebugInfo.Errors.Count} error(s) - Debug Mode Activated";
+            }
+            else
+            {
+                StatusMessage = $"Successfully loaded {file.Name}";
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error reading file");
-            StatusMessage = "Error processing the file.";
+            Logger.LogError(ex, "Critical error reading file");
+            StatusMessage = $"Critical error: Unable to read file - {ex.Message}";
         }
         finally
         {
