@@ -1,0 +1,195 @@
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@using CodeArt.Optimizely.PackageExplorer.Services
+@inject PackageService package
+
+<MudPaper Class="pa-4 mt-4">
+    <MudText Typo="Typo.h6" Color="Color.Warning" GutterBottom="true">
+        <MudIcon Icon="@Icons.Material.Filled.Warning" /> Package Debug Mode
+    </MudText>
+    
+    <MudText Typo="Typo.body2" Class="mb-4">
+        The package loaded with errors. You can use this debug view to troubleshoot the issues.
+    </MudText>
+
+    <MudTabs Rounded="true" Outlined="true">
+        <!-- Errors Tab -->
+        <MudTabPanel Text="@($"Errors ({package.DebugInfo.Errors.Count})")">
+            <MudPaper Class="pa-4">
+                @if (package.DebugInfo.Errors.Any())
+                {
+                    <MudStack Spacing="3">
+                        @foreach (var error in package.DebugInfo.Errors)
+                        {
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">
+                                <MudText Typo="Typo.subtitle1"><strong>@error.Stage</strong></MudText>
+                                <MudText Typo="Typo.body2" Class="mt-2">@error.Message</MudText>
+                                @if (!string.IsNullOrEmpty(error.Details))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mt-2" Style="font-family: monospace; font-size: 0.85em;">
+                                        <strong>Details:</strong> @error.Details
+                                    </MudText>
+                                }
+                                @if (showStackTraces && !string.IsNullOrEmpty(error.StackTrace))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mt-2" Style="font-family: monospace; font-size: 0.75em; white-space: pre-wrap;">
+                                        <strong>Stack Trace:</strong><br/>@error.StackTrace
+                                    </MudText>
+                                }
+                            </MudAlert>
+                        }
+                    </MudStack>
+                    
+                    <MudSwitch @bind-Value="showStackTraces" Color="Color.Primary" Class="mt-4">
+                        Show Stack Traces
+                    </MudSwitch>
+                }
+                else
+                {
+                    <MudText>No errors recorded.</MudText>
+                }
+            </MudPaper>
+        </MudTabPanel>
+
+        <!-- Package Contents Tab -->
+        <MudTabPanel Text="@($"Package Contents ({package.DebugInfo.ZipEntries.Count})")">
+            <MudPaper Class="pa-4">
+                @if (package.DebugInfo.ZipEntries.Any())
+                {
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Files found in the package:
+                    </MudText>
+                    <MudTable Items="@package.DebugInfo.ZipEntries" Dense="true" Hover="true" 
+                              Breakpoint="Breakpoint.Sm" Filter="new Func<string,bool>(FilterFunc)">
+                        <ToolBarContent>
+                            <MudTextField @bind-Value="searchString" Placeholder="Filter files..." 
+                                        Adornment="Adornment.Start" 
+                                        AdornmentIcon="@Icons.Material.Filled.Search" 
+                                        IconSize="Size.Medium" 
+                                        Class="mt-0"
+                                        Immediate="true">
+                            </MudTextField>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>File Path</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="File Path">
+                                <MudText Style="font-family: monospace; font-size: 0.9em;">@context</MudText>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudText>No files found in package.</MudText>
+                }
+            </MudPaper>
+        </MudTabPanel>
+
+        <!-- Partial Data Tab -->
+        <MudTabPanel Text="Partial Data">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.body2" Class="mb-3">
+                    Some data may have loaded successfully despite errors:
+                </MudText>
+                
+                <MudSimpleTable Dense="true" Bordered="true">
+                    <tbody>
+                        <tr>
+                            <td><strong>Content Items</strong></td>
+                            <td>@(package.ContentItems?.Count ?? 0) items loaded</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content Types</strong></td>
+                            <td>@(package.ContentTypes?.Count ?? 0) types loaded</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Categories</strong></td>
+                            <td>@(package.Categories?.Count ?? 0) categories loaded</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tabs</strong></td>
+                            <td>@(package.Tabs?.Count ?? 0) tabs loaded</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content Hierarchy</strong></td>
+                            <td>@(package.Hierarchy?.Count ?? 0) root items</td>
+                        </tr>
+                    </tbody>
+                </MudSimpleTable>
+
+                @if (package.ContentItems?.Count > 0 || package.ContentTypes?.Count > 0)
+                {
+                    <MudText Typo="Typo.body2" Class="mt-3" Color="Color.Info">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" /> 
+                        You can still view the partial data using the tabs above.
+                    </MudText>
+                }
+            </MudPaper>
+        </MudTabPanel>
+
+        <!-- Troubleshooting Guide -->
+        <MudTabPanel Text="Troubleshooting">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Common Issues</MudText>
+                
+                <MudExpansionPanels MultiExpansion="true">
+                    <MudExpansionPanel Text="Missing XML Files">
+                        <MudText Typo="Typo.body2">
+                            <strong>Problem:</strong> Required XML files (epix.xml, epiDefinition.xml) are missing from the package.
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2">
+                            <strong>Solution:</strong>
+                            <ul>
+                                <li>Verify the package was exported correctly from Optimizely CMS</li>
+                                <li>Check the "Package Contents" tab to see what files are actually in the package</li>
+                                <li>Ensure the file is a valid .episerverdata or .episerverpackage file</li>
+                            </ul>
+                        </MudText>
+                    </MudExpansionPanel>
+
+                    <MudExpansionPanel Text="XML Parsing Errors">
+                        <MudText Typo="Typo.body2">
+                            <strong>Problem:</strong> XML files exist but contain malformed or invalid XML.
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2">
+                            <strong>Solution:</strong>
+                            <ul>
+                                <li>Check the error details for specific XML parsing errors</li>
+                                <li>The package file may be corrupted - try re-exporting from Optimizely CMS</li>
+                                <li>Extract the .episerverdata file as a ZIP and inspect the XML files manually</li>
+                            </ul>
+                        </MudText>
+                    </MudExpansionPanel>
+
+                    <MudExpansionPanel Text="Package Structure Issues">
+                        <MudText Typo="Typo.body2">
+                            <strong>Problem:</strong> The ZIP structure doesn't match expected Optimizely package format.
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2">
+                            <strong>Solution:</strong>
+                            <ul>
+                                <li>Verify this is a genuine Optimizely/Episerver content package</li>
+                                <li>Check that the file extension is correct (.episerverdata or .episerverpackage)</li>
+                                <li>Review the "Package Contents" tab to understand the actual structure</li>
+                            </ul>
+                        </MudText>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            </MudPaper>
+        </MudTabPanel>
+    </MudTabs>
+</MudPaper>
+
+@code {
+    private bool showStackTraces = false;
+    private string searchString = string.Empty;
+
+    private bool FilterFunc(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        
+        return fileName.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
+}

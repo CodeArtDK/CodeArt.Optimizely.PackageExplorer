@@ -2,8 +2,19 @@
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
 
 @inject PackageService package;
+@inject IDialogService DialogService;
 
-<MudGrid Justify="Justify.Center" Class="mt-6 mb-6">
+<MudStack Spacing="2" Class="mb-2">
+    <MudButton StartIcon="@Icons.Material.Filled.Download" 
+               Color="Color.Primary" 
+               Variant="Variant.Filled" 
+               OnClick="OpenExportDialog"
+               Size="Size.Small">
+        Export All Content
+    </MudButton>
+</MudStack>
+
+<MudGrid Justify="Justify.Center" Class="mt-2 mb-6">
     <MudItem xs="12" md="4">
         <MudPaper Class="p-2">
 
@@ -36,6 +47,20 @@
     private ContentItem? selectedItem;
 
     private List<TreeItemData<ContentItem>> initialTreeItems = new List<TreeItemData<ContentItem>>();
+
+    private async Task OpenExportDialog()
+    {
+        var allItems = package.ContentItems ?? new List<ContentItem>();
+        
+        var parameters = new DialogParameters<ExportDialog>
+        {
+            { x => x.Items, allItems },
+            { x => x.ItemCount, allItems.Count }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        await DialogService.ShowAsync<ExportDialog>("Export Content", parameters, options);
+    }
 
     protected async override Task OnInitializedAsync()
     {
