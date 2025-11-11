@@ -10,7 +10,9 @@ public class PackageWriter
         Stream originalPackageStream,
         HashSet<string> deletedContentIds,
         HashSet<string> deletedContentTypeGuids,
-        HashSet<int> deletedCategoryIds)
+        HashSet<int> deletedCategoryIds,
+        Dictionary<string, string> modifiedContentProperties,
+        Dictionary<string, string> modifiedContentTypeProperties)
     {
         var outputStream = new MemoryStream();
         
@@ -27,6 +29,7 @@ public class PackageWriter
                 {
                     var xmlDoc = LoadXmlFromEntry(entry);
                     FilterContentItems(xmlDoc, deletedContentIds);
+                    ApplyContentPropertyModifications(xmlDoc, modifiedContentProperties);
                     WriteXmlToArchive(newArchive, "epix.xml", xmlDoc);
                 }
                 else if (entry.FullName.Equals("epiDefinition.xml", StringComparison.OrdinalIgnoreCase))
@@ -34,6 +37,7 @@ public class PackageWriter
                     var xmlDoc = LoadXmlFromEntry(entry);
                     FilterContentTypes(xmlDoc, deletedContentTypeGuids);
                     FilterCategories(xmlDoc, deletedCategoryIds);
+                    ApplyContentTypePropertyModifications(xmlDoc, modifiedContentTypeProperties);
                     WriteXmlToArchive(newArchive, "epiDefinition.xml", xmlDoc);
                 }
                 else
@@ -130,6 +134,92 @@ public class PackageWriter
             if (idStr != null && int.TryParse(idStr, out var id) && deletedCategoryIds.Contains(id))
             {
                 category.Remove();
+            }
+        }
+    }
+    
+    private static void ApplyContentPropertyModifications(XDocument doc, Dictionary<string, string> modifications)
+    {
+        if (modifications.Count == 0) return;
+        
+        var transferElements = doc.Descendants("TransferContentData").ToList();
+        
+        foreach (var transfer in transferElements)
+        {
+            var rawContent = transfer.Element("RawContentData");
+            if (rawContent == null) continue;
+            
+            // Get the PageLink to identify the content item
+            var pageLinkProp = rawContent.Descendants("RawProperty")
+                .FirstOrDefault(p => p.Element("Name")?.Value == "PageLink");
+            
+            if (pageLinkProp != null)
+            {
+                var pageLink = pageLinkProp.Element("Value")?.Value?.Replace("[", "").Replace("]", "").Trim();
+                if (pageLink != null)
+                {
+                    // Find and update modified properties for this content item
+                    var properties = rawContent.Descendants("RawProperty").ToList();
+                    foreach (var prop in properties)
+                    {
+                        var propName = prop.Element("Name")?.Value;
+                        if (propName != null)
+                        {
+                            var key = $"{pageLink}|{propName}";
+                            if (modifications.TryGetValue(key, out var newValue))
+                            {
+                                var valueElement = prop.Element("Value");
+                                if (valueElement != null)
+                                {
+                                    valueElement.Value = newValue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private static void ApplyContentTypePropertyModifications(XDocument doc, Dictionary<string, string> modifications)
+    {
+        if (modifications.Count == 0) return;
+        
+        var contentTypeElements = doc
+            .Descendants("ArrayOfContentTypeTransferObject")
+            .Descendants("ContentTypeTransferObject")
+            .ToList();
+        
+        foreach (var type in contentTypeElements)
+        {
+            var typeGuid = type.Element("GUID")?.Value;
+            if (typeGuid != null)
+            {
+                // Find property definitions within this content type
+                var propertyElements = type
+                    .Descendants("PropertyDefinitionTransferObject")
+                    .ToList();
+                
+                foreach (var prop in propertyElements)
+                {
+                    var propName = prop.Element("Name")?.Value;
+                    if (propName != null)
+                    {
+                        // Check for modifications to this property's fields
+                        foreach (var fieldName in new[] { "EditCaption", "IsRequired", "IsSearchable", "IsLocalizable" })
+                        {
+                            var key = $"{typeGuid}|{propName}|{fieldName}";
+                            if (modifications.TryGetValue(key, out var newValue))
+                            {
+                                var fieldElement = prop.Element(fieldName);
+                                if (fieldElement != null)
+                                {
+                                    fieldElement.Value = newValue;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

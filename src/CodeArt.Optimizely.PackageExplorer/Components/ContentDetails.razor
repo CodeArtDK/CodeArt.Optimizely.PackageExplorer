@@ -8,13 +8,19 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h6">@("[" + Item.ContentTypeName + "] " + Item.Name)</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            <MudTooltip Text="Double-click on a property value to edit it">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
+            </MudTooltip>
+        </CardHeaderActions>
     </MudCardHeader>
     <MudCardContent>
         @if(package.GetContentTypeFromContent(Item).Base=="Image"){
             <ImageBlobView BlobReference="@Item.TryGetProperty("BinaryData")" />
         }
 
-        <MudDataGrid Items="@Item.Properties" Dense="true">
+        <MudDataGrid Items="@Item.Properties" Dense="true" EditMode="DataGridEditMode.Cell" 
+                     CommittedItemChanges="@OnPropertyChangedEventCallback">
             <Columns>
                 <TemplateColumn T="ContentProperty">
                     <CellTemplate Context="property">
@@ -24,6 +30,13 @@
                             Variant="Variant.Outlined"
                             Class="mr-2"
                             Content="@("System")" />
+                        }
+                        @if (package.IsPropertyModified(Item, property.Item.Name))
+                        {
+                            <MudBadge Color="Color.Warning"
+                            Variant="Variant.Outlined"
+                            Class="mr-2"
+                            Content="@("Modified")" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -37,7 +50,7 @@
                         </MudText>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Value">
+                <TemplateColumn T="ContentProperty" Title="Value (double-click to edit)">
                     <CellTemplate Context="property">
                         @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
                         {
@@ -49,6 +62,21 @@
                             <MudText>@property.Item.Value</MudText>
                         }
                     </CellTemplate>
+                    <EditTemplate Context="property">
+                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                        {
+                            <MudTextField @bind-Value="property.Item.Value" 
+                                        Lines="5" 
+                                        Variant="Variant.Outlined"
+                                        FullWidth="true" />
+                        }
+                        else
+                        {
+                            <MudTextField @bind-Value="property.Item.Value" 
+                                        Variant="Variant.Outlined"
+                                        FullWidth="true" />
+                        }
+                    </EditTemplate>
                 </TemplateColumn>
             </Columns>
         </MudDataGrid>
@@ -67,6 +95,18 @@
     {
         if(firstRender){
             await JS.InvokeVoidAsync("Prism.highlightAll");
+        }
+    }
+
+    private EventCallback<ContentProperty> OnPropertyChangedEventCallback => 
+        EventCallback.Factory.Create<ContentProperty>(this, OnPropertyChanged);
+
+    private void OnPropertyChanged(ContentProperty property)
+    {
+        // Update the property value in the package service
+        if (property.Value != null)
+        {
+            package.UpdateContentProperty(Item, property.Name, property.Value);
         }
     }
 

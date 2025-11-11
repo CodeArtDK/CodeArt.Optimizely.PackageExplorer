@@ -22,9 +22,17 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public HashSet<string> DeletedContentTypeGuids { get; private set; } = new();
         public HashSet<int> DeletedCategoryIds { get; private set; } = new();
         
+        // Track modified properties: Key = "ContentLink|PropertyName", Value = new value
+        public Dictionary<string, string> ModifiedContentProperties { get; private set; } = new();
+        
+        // Track modified content type properties: Key = "TypeGuid|PropertyName", Value = new value
+        public Dictionary<string, string> ModifiedContentTypeProperties { get; private set; } = new();
+        
         public bool HasModifications => DeletedContentIds.Count > 0 || 
                                        DeletedContentTypeGuids.Count > 0 || 
-                                       DeletedCategoryIds.Count > 0;
+                                       DeletedCategoryIds.Count > 0 ||
+                                       ModifiedContentProperties.Count > 0 ||
+                                       ModifiedContentTypeProperties.Count > 0;
         
         // Event to notify when modifications occur
         public event Action? OnModificationsChanged;
@@ -59,6 +67,10 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             DeletedContentIds.Clear();
             DeletedContentTypeGuids.Clear();
             DeletedCategoryIds.Clear();
+            
+            // Reset modification tracking
+            ModifiedContentProperties.Clear();
+            ModifiedContentTypeProperties.Clear();
 
             await Task.Yield(); // Let the spinner render
             
@@ -222,6 +234,65 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             return DeletedCategoryIds.Contains(category.Id);
         }
         
+        // Methods for modifying properties
+        public void UpdateContentProperty(ContentItem item, string propertyName, string newValue)
+        {
+            if (item.ContentLink == null) return;
+            
+            var key = $"{item.ContentLink}|{propertyName}";
+            var property = item.Properties.FirstOrDefault(p => p.Name == propertyName);
+            
+            if (property != null)
+            {
+                // Update the in-memory property value
+                property.Value = newValue;
+                
+                // Track the modification
+                ModifiedContentProperties[key] = newValue;
+                OnModificationsChanged?.Invoke();
+            }
+        }
+        
+        public void UpdateContentTypeProperty(ContentTypeDefinition contentType, ContentPropertyDefinition property, string fieldName, object newValue)
+        {
+            var key = $"{contentType.Guid}|{property.Name}|{fieldName}";
+            
+            // Update the in-memory value based on field
+            switch (fieldName)
+            {
+                case "EditCaption":
+                    property.EditCaption = newValue?.ToString();
+                    break;
+                case "IsRequired":
+                    property.IsRequired = Convert.ToBoolean(newValue);
+                    break;
+                case "IsSearchable":
+                    property.IsSearchable = Convert.ToBoolean(newValue);
+                    break;
+                case "IsLocalizable":
+                    property.IsLocalizable = Convert.ToBoolean(newValue);
+                    break;
+            }
+            
+            // Track the modification
+            ModifiedContentTypeProperties[key] = newValue?.ToString() ?? "";
+            OnModificationsChanged?.Invoke();
+        }
+        
+        public string? GetModifiedValue(ContentItem item, string propertyName)
+        {
+            if (item.ContentLink == null) return null;
+            var key = $"{item.ContentLink}|{propertyName}";
+            return ModifiedContentProperties.TryGetValue(key, out var value) ? value : null;
+        }
+        
+        public bool IsPropertyModified(ContentItem item, string propertyName)
+        {
+            if (item.ContentLink == null) return false;
+            var key = $"{item.ContentLink}|{propertyName}";
+            return ModifiedContentProperties.ContainsKey(key);
+        }
+        
         public Stream ExportModifiedPackage()
         {
             if (stream == null)
@@ -233,7 +304,9 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
                 stream,
                 DeletedContentIds,
                 DeletedContentTypeGuids,
-                DeletedCategoryIds
+                DeletedCategoryIds,
+                ModifiedContentProperties,
+                ModifiedContentTypeProperties
             );
         }
 
