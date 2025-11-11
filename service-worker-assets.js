@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "mNT5qwO2",
+  "version": "f3znEEEA",
   "assets": [
     {
       "hash": "sha256-AqFmVFYZtVLn8sBnJANgw2vg5SB21IdXlg306rY40EY=",
@@ -14,11 +14,11 @@ self.assetsManifest = {
       "url": "_content/MudBlazor/MudBlazor.min.js"
     },
     {
-      "hash": "sha256-gBpcPb8AdS0k18rDFBfBv3dVcNXGU/DhCJ9efd1asD4=",
+      "hash": "sha256-ekDNAfCrBcmrwN1pKWGvyO/4gOByElRFFQH/US02SPw=",
       "url": "_framework/CodeArt.Optimizely.PackageExplorer.Core.wasm"
     },
     {
-      "hash": "sha256-/iafOt+vlBbg2l1LBq+WYXuveGf9Fgog+A1BgaT6v2k=",
+      "hash": "sha256-ruERR3uwfssQMvy5DD/aRrfUB28Y4DNNhdcQ+f5WuSU=",
       "url": "_framework/CodeArt.Optimizely.PackageExplorer.wasm"
     },
     {
@@ -90,7 +90,7 @@ self.assetsManifest = {
       "url": "_framework/Microsoft.JSInterop.wasm"
     },
     {
-      "hash": "sha256-w8HCyeeKF80LLVSOIEn5ycCLVTsjV4pbMh25NgM5R+Y=",
+      "hash": "sha256-sZth35n2QlMl7jsYry6h3wrSk3YPSaHfg91FmKghCnE=",
       "url": "_framework/MudBlazor.wasm"
     },
     {
@@ -106,7 +106,7 @@ self.assetsManifest = {
       "url": "_framework/System.Collections.NonGeneric.wasm"
     },
     {
-      "hash": "sha256-rwfhM2ba6ZWqaVbbeq19e0aWGrkYPFArMtd9kQw/YlY=",
+      "hash": "sha256-esBjrPUbW58MzY9pYxhgdGNQPbOyQWcTtruIKRdyy6E=",
       "url": "_framework/System.Collections.wasm"
     },
     {
@@ -186,7 +186,7 @@ self.assetsManifest = {
       "url": "_framework/System.Runtime.Numerics.wasm"
     },
     {
-      "hash": "sha256-4/C5JQfMNAH2C7V2rianKy0xzcDFtTi0vTFBn7heoBs=",
+      "hash": "sha256-lHbNokbRe6gKUds/0RlrYEWZX+T1Kezv1Wj5mD+o9gg=",
       "url": "_framework/System.Runtime.wasm"
     },
     {
@@ -194,7 +194,7 @@ self.assetsManifest = {
       "url": "_framework/System.Text.Encodings.Web.wasm"
     },
     {
-      "hash": "sha256-O0FjZ5F/Mphy5i3ievgzHmYDWnJ+2yYouB4spg3sV7s=",
+      "hash": "sha256-kj7PtejVjY/nz3kgS23YSakZ4515F9+TDgQyZTK0rbg=",
       "url": "_framework/System.Text.Json.wasm"
     },
     {
@@ -214,7 +214,7 @@ self.assetsManifest = {
       "url": "_framework/System.wasm"
     },
     {
-      "hash": "sha256-B4jY/Ksu4jMCpdAx3Ymkts0sgKWLjyr3fO+cINbMWRg=",
+      "hash": "sha256-5kDY/gnFGjnDi3h2uI87YN1hfadCmv2Wvi/cBF8g4tI=",
       "url": "_framework/blazor.boot.json"
     },
     {
@@ -266,8 +266,12 @@ self.assetsManifest = {
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-tXGh7sctpb689ioY2INnLxanx7U5ptzFsW7tEx8XFG8=",
+      "hash": "sha256-uJsIpE9BaCPdc+zJD9YC9OYaP9wkM/zw0yjGLoAoX8w=",
       "url": "index.html"
+    },
+    {
+      "hash": "sha256-e8bWVspmdAYgnif88QVd31/MKwZtvMbfU1lA5vq6r2s=",
+      "url": "js/fileDownload.js"
     },
     {
       "hash": "sha256-Fx5DJFOinX2i8RhZxD1WHAi7h1maN1CWORnjHFuaFJc=",
