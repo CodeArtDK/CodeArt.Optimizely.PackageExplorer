@@ -3,9 +3,9 @@
 
 @inject PackageService package;
 
-@if (package.ContentTypes?.Any() == true)
+@if (FilteredContentTypes?.Any() == true)
 {
-    <MudDataGrid Items="@package.ContentTypes" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single">
+    <MudDataGrid Items="@FilteredContentTypes" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single">
         <Columns>
             <HierarchyColumn T="ContentTypeDefinition" />
             <PropertyColumn Property="x => x.GroupName" Title="Group"/>
@@ -13,6 +13,22 @@
             <PropertyColumn Property="x => x.Base" Title="Base" />
             <PropertyColumn Property="x => x.ModelTypeString" Title="Model Type" />
             <PropertyColumn Property="x => x.Properties.Count" Title="# Properties" />
+            <TemplateColumn Title="Actions">
+                <CellTemplate>
+                    @if (package.IsDeleted(context.Item))
+                    {
+                        <MudChip Color="Color.Error" Size="Size.Small">Deleted</MudChip>
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Color="Color.Error" 
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteContentType(context.Item))"
+                                       Title="Delete this content type" />
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
         <ChildRowContent>
             <MudCard>
@@ -75,4 +91,15 @@ else
     <MudText Color="Color.Secondary" Class="mt-2">
         No content types found.
     </MudText>
+}
+
+@code {
+    private IEnumerable<ContentTypeDefinition> FilteredContentTypes => 
+        package.ContentTypes?.Where(ct => !package.IsDeleted(ct)) ?? Enumerable.Empty<ContentTypeDefinition>();
+    
+    private void DeleteContentType(ContentTypeDefinition contentType)
+    {
+        package.DeleteContentType(contentType);
+        StateHasChanged();
+    }
 }

@@ -16,6 +16,18 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public List<CategoryDefinition>? Categories { get; private set; }
         public PackageDebugInfo DebugInfo { get; private set; } = new();
         public bool IsInDebugMode => DebugInfo.HasErrors;
+        
+        // Track deleted items
+        public HashSet<string> DeletedContentIds { get; private set; } = new();
+        public HashSet<string> DeletedContentTypeGuids { get; private set; } = new();
+        public HashSet<int> DeletedCategoryIds { get; private set; } = new();
+        
+        public bool HasModifications => DeletedContentIds.Count > 0 || 
+                                       DeletedContentTypeGuids.Count > 0 || 
+                                       DeletedCategoryIds.Count > 0;
+        
+        // Event to notify when modifications occur
+        public event Action? OnModificationsChanged;
 
         public byte[]? LoadBlobBytes(string blobReference)
         {
@@ -42,6 +54,11 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             Categories = null;
             Tabs = null;
             Hierarchy = null;
+            
+            // Reset deletion tracking when loading a new package
+            DeletedContentIds.Clear();
+            DeletedContentTypeGuids.Clear();
+            DeletedCategoryIds.Clear();
 
             await Task.Yield(); // Let the spinner render
             
@@ -167,6 +184,57 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
                     StackTrace = ex.StackTrace
                 });
             }
+        }
+        
+        public void DeleteContentItem(ContentItem item)
+        {
+            if (item.ContentLink != null)
+            {
+                DeletedContentIds.Add(item.ContentLink);
+                OnModificationsChanged?.Invoke();
+            }
+        }
+        
+        public void DeleteContentType(ContentTypeDefinition contentType)
+        {
+            DeletedContentTypeGuids.Add(contentType.Guid.ToString());
+            OnModificationsChanged?.Invoke();
+        }
+        
+        public void DeleteCategory(CategoryDefinition category)
+        {
+            DeletedCategoryIds.Add(category.Id);
+            OnModificationsChanged?.Invoke();
+        }
+        
+        public bool IsDeleted(ContentItem item)
+        {
+            return item.ContentLink != null && DeletedContentIds.Contains(item.ContentLink);
+        }
+        
+        public bool IsDeleted(ContentTypeDefinition contentType)
+        {
+            return DeletedContentTypeGuids.Contains(contentType.Guid.ToString());
+        }
+        
+        public bool IsDeleted(CategoryDefinition category)
+        {
+            return DeletedCategoryIds.Contains(category.Id);
+        }
+        
+        public Stream ExportModifiedPackage()
+        {
+            if (stream == null)
+            {
+                throw new InvalidOperationException("No package is currently loaded");
+            }
+            
+            return PackageWriter.CreateModifiedPackage(
+                stream,
+                DeletedContentIds,
+                DeletedContentTypeGuids,
+                DeletedCategoryIds
+            );
         }
 
         public void Dispose()

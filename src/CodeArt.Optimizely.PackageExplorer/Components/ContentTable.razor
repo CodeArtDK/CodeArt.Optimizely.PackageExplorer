@@ -4,7 +4,7 @@
 @inject PackageService package;
 @inject IDialogService DialogService;
 
-<MudDataGrid @ref="_dataGrid" Items="@package.ContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
+<MudDataGrid @ref="_dataGrid" Items="@FilteredContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Content Items</MudText>
         <MudSpacer />
@@ -27,6 +27,22 @@
         <PropertyColumn Property="x => x.PageStartPublish" Title="Start Publish" />
         <PropertyColumn Property="x => x.PageLanguageBranch" Title="Language" />
         <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" />
+        <TemplateColumn Title="Actions">
+            <CellTemplate>
+                @if (package.IsDeleted(context.Item))
+                {
+                    <MudChip Color="Color.Error" Size="Size.Small">Deleted</MudChip>
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                   Color="Color.Error" 
+                                   Size="Size.Small"
+                                   OnClick="@(() => DeleteItem(context.Item))"
+                                   Title="Delete this content item" />
+                }
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
     <ChildRowContent>
        <ContentDetails Item="@context.Item"/>
@@ -37,6 +53,15 @@
 
     private MudDataGrid<ContentItem> _dataGrid;
     private string _searchString;
+
+    private IEnumerable<ContentItem> FilteredContentItems => 
+        package.ContentItems?.Where(item => !package.IsDeleted(item)) ?? Enumerable.Empty<ContentItem>();
+
+    private void DeleteItem(ContentItem item)
+    {
+        package.DeleteContentItem(item);
+        StateHasChanged();
+    }
 
     private async Task OpenExportDialog()
     {

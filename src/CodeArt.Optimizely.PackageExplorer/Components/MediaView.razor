@@ -3,8 +3,8 @@
 
 @inject PackageService package;
 
-<MudGrid GutterSize="16px">
-    @foreach (var item in package.ContentItems.Where(ci => ci.TryGetProperty("BinaryData")!=null && package.GetContentTypeFromContent(ci)?.Base=="Image"))
+<MudGrid Spacing="4">
+    @foreach (var item in FilteredMediaItems)
     {
         <MudItem xs="12" sm="6" md="4" lg="3">
             <MudCard Class="h-100">
@@ -14,11 +14,35 @@
                     <MudText Typo="Typo.body2">@item.ContentTypeName</MudText>
                 </MudCardContent>
                 <MudCardActions>
-                    @* <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="() => ViewItem(item)">
-                        View
-                    </MudButton> *@
+                    @if (package.IsDeleted(item))
+                    {
+                        <MudText Color="Color.Error" Typo="Typo.caption">Deleted</MudText>
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Color="Color.Error" 
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteMediaItem(item))"
+                                       Title="Delete this media item" />
+                    }
                 </MudCardActions>
             </MudCard>
         </MudItem>
     }
 </MudGrid>
+
+@code {
+    private IEnumerable<ContentItem> FilteredMediaItems => 
+        package.ContentItems?
+            .Where(ci => ci.TryGetProperty("BinaryData") != null && 
+                        package.GetContentTypeFromContent(ci)?.Base == "Image" &&
+                        !package.IsDeleted(ci)) 
+        ?? Enumerable.Empty<ContentItem>();
+    
+    private void DeleteMediaItem(ContentItem item)
+    {
+        package.DeleteContentItem(item);
+        StateHasChanged();
+    }
+}
