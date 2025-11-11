@@ -45,6 +45,11 @@ public class ZipPackage : IDisposable
         return null;
     }
 
+    public List<string> GetZipEntries()
+    {
+        return _zipArchive.Entries.Select(e => e.FullName).ToList();
+    }
+
     public void Dispose()
     {
         _zipArchive.Dispose();
