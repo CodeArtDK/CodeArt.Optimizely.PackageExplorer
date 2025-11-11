@@ -166,6 +166,16 @@
     {
         try
         {
+            // Check if the download function is available
+            var functionExists = await JS.InvokeAsync<bool>("eval", "typeof window.downloadFileFromStream === 'function'");
+            
+            if (!functionExists)
+            {
+                StatusMessage = "Please refresh the page (Ctrl+Shift+R or Cmd+Shift+R) to update the application, then try downloading again.";
+                Logger.LogWarning("downloadFileFromStream function not found - page refresh required");
+                return;
+            }
+            
             var modifiedPackageStream = package.ExportModifiedPackage();
             
             using var streamRef = new DotNetStreamReference(stream: modifiedPackageStream);
@@ -180,11 +190,12 @@
             }
             
             await JS.InvokeVoidAsync("downloadFileFromStream", modifiedFileName, streamRef);
+            StatusMessage = "Package downloaded successfully!";
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error exporting modified package");
-            StatusMessage = "Error exporting the modified package.";
+            StatusMessage = "Error exporting the modified package. Please try refreshing the page.";
         }
     }
 
