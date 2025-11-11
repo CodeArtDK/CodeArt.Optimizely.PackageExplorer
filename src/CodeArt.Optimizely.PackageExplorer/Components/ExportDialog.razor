@@ -1,0 +1,91 @@
+@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@inject ExportService exportService;
+@inject IJSRuntime JS;
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Select the format to export @ItemCount content item(s):
+        </MudText>
+        
+        <MudRadioGroup @bind-Value="selectedFormat">
+            <MudRadio Value="@("json")" Color="Color.Primary">
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" />
+                    <div>
+                        <MudText Typo="Typo.body1">JSON</MudText>
+                        <MudText Typo="Typo.caption">Export as JSON format with all properties</MudText>
+                    </div>
+                </MudStack>
+            </MudRadio>
+            <MudRadio Value="@("csv")" Color="Color.Primary">
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.TableChart" />
+                    <div>
+                        <MudText Typo="Typo.body1">CSV</MudText>
+                        <MudText Typo="Typo.caption">Export as CSV format with key properties</MudText>
+                    </div>
+                </MudStack>
+            </MudRadio>
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Export" Disabled="@(string.IsNullOrEmpty(selectedFormat))">
+            Export
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IDialogReference? MudDialog { get; set; }
+
+    [Parameter]
+    public IEnumerable<ContentItem> Items { get; set; } = Enumerable.Empty<ContentItem>();
+
+    [Parameter]
+    public int ItemCount { get; set; }
+
+    private string selectedFormat = "json";
+
+    private async Task Export()
+    {
+        if (Items == null || !Items.Any())
+        {
+            MudDialog?.Close();
+            return;
+        }
+
+        byte[] fileContent;
+        string fileName;
+        string contentType;
+
+        if (selectedFormat == "json")
+        {
+            fileContent = exportService.ExportToJson(Items);
+            fileName = $"content-export-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+            contentType = "application/json";
+        }
+        else if (selectedFormat == "csv")
+        {
+            fileContent = exportService.ExportToCsv(Items);
+            fileName = $"content-export-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+            contentType = "text/csv";
+        }
+        else
+        {
+            MudDialog?.Close();
+            return;
+        }
+
+        await JS.InvokeVoidAsync("downloadFile", fileName, contentType, fileContent);
+        MudDialog?.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Close();
+    }
+}
