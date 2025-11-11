@@ -75,10 +75,11 @@
     {
         base.OnParametersSet();
         
-        // Get all unique property names from all items
+        // Get all unique property names from all items, excluding empty/null names
         var allPropertyNames = Items
             .SelectMany(item => item.Properties)
             .Select(prop => prop.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct()
             .OrderBy(name => name)
             .ToList();
@@ -159,6 +160,6 @@
 
     private void Cancel()
     {
-        MudDialog?.Close();
+        MudDialog?.Close(DialogResult.Cancel());
     }
 }
