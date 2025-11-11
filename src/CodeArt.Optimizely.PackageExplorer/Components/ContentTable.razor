@@ -4,7 +4,7 @@
 @inject PackageService package;
 @inject IDialogService DialogService;
 
-<MudDataGrid Items="@package.ContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
+<MudDataGrid @ref="_dataGrid" Items="@package.ContentItems" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single" QuickFilter="@_quickFilter">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Content Items</MudText>
         <MudSpacer />
@@ -35,11 +35,13 @@
 
 @code{
 
+    private MudDataGrid<ContentItem> _dataGrid;
     private string _searchString;
 
     private async Task OpenExportDialog()
     {
-        var filteredItems = package.ContentItems?.Where(_quickFilter).ToList() ?? new List<ContentItem>();
+        // Get filtered and sorted items from the data grid
+        var filteredItems = _dataGrid?.FilteredItems?.ToList() ?? package.ContentItems?.ToList() ?? new List<ContentItem>();
         
         var parameters = new DialogParameters<ExportDialog>
         {
