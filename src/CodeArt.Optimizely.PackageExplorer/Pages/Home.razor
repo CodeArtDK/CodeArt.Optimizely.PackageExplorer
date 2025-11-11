@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/upload"
+@implements IDisposable
 @using CodeArt.Optimizely.PackageExplorer.Components
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
 @using CodeArt.Optimizely.PackageExplorer.Core.Services
@@ -50,16 +51,20 @@
             <!-- Download button for modified package -->
             @if (package.HasModifications)
             {
-                <MudAlert Severity="Severity.Info" Class="mt-4">
-                    Package has been modified. You can download the cleaned package below.
-                </MudAlert>
-                <MudButton Variant="Variant.Filled"
-                          Color="Color.Success"
-                          StartIcon="@Icons.Material.Filled.Download"
-                          OnClick="DownloadModifiedPackage"
-                          Class="mt-2">
-                    Download Modified Package
-                </MudButton>
+                <MudPaper Class="mt-4 pa-3" Elevation="2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudAlert Severity="Severity.Info" Dense="true" NoIcon="false" Class="flex-grow-1">
+                            Package has been modified. Click the button to download the cleaned package.
+                        </MudAlert>
+                        <MudButton Variant="Variant.Filled"
+                                  Color="Color.Success"
+                                  StartIcon="@Icons.Material.Filled.Download"
+                                  OnClick="DownloadModifiedPackage"
+                                  Size="Size.Medium">
+                            Download Modified Package
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
             }
             
             <!-- Tabs for content -->
@@ -106,6 +111,27 @@
     private bool _isLoading = false;
     private string? _originalFileName;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Subscribe to modification changes
+        package.OnModificationsChanged += OnPackageModified;
+    }
+    
+    private void OnPackageModified()
+    {
+        // Trigger UI update when package is modified
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        // Unsubscribe from the event
+        if (package != null)
+        {
+            package.OnModificationsChanged -= OnPackageModified;
+        }
+    }
 
     private async Task OnFilesChanged(IBrowserFile file)
     {

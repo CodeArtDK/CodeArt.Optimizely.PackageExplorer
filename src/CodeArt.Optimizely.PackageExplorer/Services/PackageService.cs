@@ -23,6 +23,9 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public bool HasModifications => DeletedContentIds.Count > 0 || 
                                        DeletedContentTypeGuids.Count > 0 || 
                                        DeletedCategoryIds.Count > 0;
+        
+        // Event to notify when modifications occur
+        public event Action? OnModificationsChanged;
 
         public byte[]? LoadBlobBytes(string blobReference)
         {
@@ -66,17 +69,20 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             if (item.ContentLink != null)
             {
                 DeletedContentIds.Add(item.ContentLink);
+                OnModificationsChanged?.Invoke();
             }
         }
         
         public void DeleteContentType(ContentTypeDefinition contentType)
         {
             DeletedContentTypeGuids.Add(contentType.Guid.ToString());
+            OnModificationsChanged?.Invoke();
         }
         
         public void DeleteCategory(CategoryDefinition category)
         {
             DeletedCategoryIds.Add(category.Id);
+            OnModificationsChanged?.Invoke();
         }
         
         public bool IsDeleted(ContentItem item)
