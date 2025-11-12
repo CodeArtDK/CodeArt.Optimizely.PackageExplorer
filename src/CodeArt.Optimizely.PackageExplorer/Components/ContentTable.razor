@@ -26,8 +26,8 @@
         <PropertyColumn Property="x => x.ContentTypeName" Title="Content Type" />
         <PropertyColumn Property="x => x.PageStartPublish" Title="Start Publish" />
         <PropertyColumn Property="x => x.PageLanguageBranch" Title="Language" />
-        <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" />
-        <TemplateColumn Title="Actions">
+        <PropertyColumn Property="x => x.PageMasterLanguageBranch" Title="Master Language" Hideable="true" Hidden="true" />
+        <TemplateColumn Title="Actions" Sortable="false" Filterable="false" StickyRight="true">
             <CellTemplate>
                 @if (package.IsDeleted(context.Item))
                 {

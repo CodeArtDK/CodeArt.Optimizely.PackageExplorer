@@ -38,8 +38,8 @@
         </MudText>
 
         <MudStack Row="true" Class="mb-2">
-            <MudButton Size="Size.Small" OnClick="SelectAllProperties" Variant="Variant.Text">Select All</MudButton>
-            <MudButton Size="Size.Small" OnClick="DeselectAllProperties" Variant="Variant.Text">Deselect All</MudButton>
+            <MudButton Size="Size.Small" OnClick="@SelectAllProperties" Variant="Variant.Text">Select All</MudButton>
+            <MudButton Size="Size.Small" OnClick="@DeselectAllProperties" Variant="Variant.Text">Deselect All</MudButton>
         </MudStack>
 
         <MudPaper Class="pa-2" Style="max-height: 300px; overflow-y: auto;">
@@ -50,8 +50,8 @@
         </MudPaper>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Export" 
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@Export" 
                    Disabled="@(string.IsNullOrEmpty(selectedFormat) || !selectedProperties.Any(x => x.Value))">
             Export
         </MudButton>
