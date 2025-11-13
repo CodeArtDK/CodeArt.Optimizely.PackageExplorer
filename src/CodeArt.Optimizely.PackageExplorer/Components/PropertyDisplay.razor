@@ -42,7 +42,7 @@ else if (Property.IsList)
                       Content="@("List")" />
             <MudText Inline="true" Typo="Typo.body2">
                 <strong>@Property.Name</strong>
-                <span class="ml-2 text-muted">(@Property.ListProperties!.Count items)</span>
+                <span class="ml-2 text-muted">(@(Property.ListProperties?.Count ?? 0) items)</span>
             </MudText>
         </div>
         
@@ -56,15 +56,18 @@ else if (Property.IsList)
         }
         
         <div class="property-children" style="border-left: 2px solid #e0e0e0; margin-left: 10px; padding-left: 10px; margin-top: 8px;">
-            @for (int i = 0; i < Property.ListProperties!.Count; i++)
+            @if (Property.ListProperties != null)
             {
-                var listItem = Property.ListProperties[i];
-                <div class="list-item" style="margin-bottom: 8px;">
-                    <MudText Typo="Typo.caption" Class="text-muted">
-                        Item @(i + 1):
-                    </MudText>
-                    <PropertyDisplay Property="@listItem" Level="@(Level + 1)" />
-                </div>
+                @for (int i = 0; i < Property.ListProperties.Count; i++)
+                {
+                    var listItem = Property.ListProperties[i];
+                    <div class="list-item" style="margin-bottom: 8px;">
+                        <MudText Typo="Typo.caption" Class="text-muted">
+                            Item @(i + 1):
+                        </MudText>
+                        <PropertyDisplay Property="@listItem" Level="@(Level + 1)" />
+                    </div>
+                }
             }
         </div>
     </div>

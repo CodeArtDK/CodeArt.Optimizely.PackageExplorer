@@ -62,7 +62,7 @@
                             }
                             else if (property.Item.IsList)
                             {
-                                <MudText Class="text-muted">@property.Item.ListProperties!.Count item(s)</MudText>
+                                <MudText Class="text-muted">@(property.Item.ListProperties?.Count ?? 0) item(s)</MudText>
                             }
                         }
                         else if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
