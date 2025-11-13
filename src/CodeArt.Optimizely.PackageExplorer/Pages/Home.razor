@@ -146,7 +146,8 @@
         StatusMessage = $"Loading {file.Name} , Size: {FormatFileSize(file.Size)}";
         try
         {
-            using var stream = file.OpenReadStream(maxAllowedSize: 100_000_000);
+            // Allow reading up to the actual file size to support large files
+            using var stream = file.OpenReadStream(maxAllowedSize: file.Size);
             var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
