@@ -40,8 +40,15 @@ public static class ContentItemParser
         return items;
     }
 
-    private static ContentProperty ParseProperty(XElement prop)
+    private static ContentProperty ParseProperty(XElement prop, int depth = 0)
     {
+        // Prevent stack overflow from excessively deep nesting
+        const int maxDepth = 100;
+        if (depth > maxDepth)
+        {
+            throw new InvalidOperationException($"Maximum nesting depth of {maxDepth} exceeded. Possible circular reference in XML structure.");
+        }
+
         var property = new ContentProperty
         {
             Name = (string?)prop.Element("Name") ?? "",
@@ -67,7 +74,7 @@ public static class ContentItemParser
             property.BlockProperties = new List<ContentProperty>();
             foreach (var nestedProp in blockProps.Elements("RawProperty"))
             {
-                property.BlockProperties.Add(ParseProperty(nestedProp));
+                property.BlockProperties.Add(ParseProperty(nestedProp, depth + 1));
             }
         }
 
@@ -78,7 +85,7 @@ public static class ContentItemParser
             property.ListProperties = new List<ContentProperty>();
             foreach (var listItem in listProps.Elements("RawProperty"))
             {
-                property.ListProperties.Add(ParseProperty(listItem));
+                property.ListProperties.Add(ParseProperty(listItem, depth + 1));
             }
         }
 

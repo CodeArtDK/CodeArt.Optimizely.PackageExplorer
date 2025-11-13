@@ -2,7 +2,13 @@
 
 @* Recursive component for displaying properties with nested blocks and lists *@
 
-@if (Property.IsBlock)
+@if (Level > MaxRenderDepth)
+{
+    <MudText Color="Color.Error" Typo="Typo.caption">
+        Maximum nesting depth exceeded (Level @Level > @MaxRenderDepth)
+    </MudText>
+}
+else if (Property.IsBlock)
 {
     @* Display as an inline block *@
     <div class="property-block" style="margin-left: @(Level * 20)px;">
@@ -103,4 +109,7 @@ else
     
     [Parameter]
     public int Level { get; set; } = 0;
+    
+    // Prevent excessive rendering depth
+    private const int MaxRenderDepth = 50;
 }
