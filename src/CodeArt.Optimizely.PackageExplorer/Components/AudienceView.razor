@@ -71,7 +71,18 @@ else
                                 }
                                 @if (!string.IsNullOrEmpty(criterion.ModelData))
                                 {
-                                    <MudText><strong>Settings:</strong> @criterion.ModelData</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="mt-2"><strong>Settings:</strong></MudText>
+                                    <MudSimpleTable Dense="true" Hover="true" Class="ml-4">
+                                        <tbody>
+                                            @foreach (var setting in ParseModelData(criterion.ModelData))
+                                            {
+                                                <tr>
+                                                    <td style="font-weight: 500; width: 200px;">@setting.Key</td>
+                                                    <td>@setting.Value</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </MudSimpleTable>
                                 }
                                 @if (!string.IsNullOrEmpty(criterion.Notes))
                                 {
@@ -114,5 +125,47 @@ else
         
         // Add spaces before capital letters
         return string.Concat(simpleName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString()));
+    }
+    
+    private List<KeyValuePair<string, string>> ParseModelData(string modelData)
+    {
+        var result = new List<KeyValuePair<string, string>>();
+        
+        if (string.IsNullOrEmpty(modelData))
+            return result;
+        
+        // Split by comma and parse key-value pairs
+        var pairs = modelData.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (var pair in pairs)
+        {
+            var parts = pair.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                var key = FormatSettingName(parts[0].Trim());
+                var value = FormatSettingValue(parts[1].Trim());
+                result.Add(new KeyValuePair<string, string>(key, value));
+            }
+        }
+        
+        return result;
+    }
+    
+    private string FormatSettingName(string name)
+    {
+        // Add spaces before capital letters for better readability
+        return string.Concat(name.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString()));
+    }
+    
+    private string FormatSettingValue(string value)
+    {
+        // Format special values for better display
+        if (value == "00000000-0000-0000-0000-000000000000")
+            return "(Not set)";
+        
+        if (bool.TryParse(value, out var boolValue))
+            return boolValue ? "Yes" : "No";
+        
+        return value;
     }
 }
