@@ -8,6 +8,19 @@
     <ToolBarContent>
         <MudText Typo="Typo.h6">Content Items</MudText>
         <MudSpacer />
+        <MudSelect @bind-Value="_selectedLanguage" 
+                   T="string" 
+                   Label="Language" 
+                   Variant="Variant.Outlined" 
+                   Dense="true"
+                   Class="mr-2"
+                   Style="min-width: 150px;">
+            <MudSelectItem T="string" Value="@("All")">All Languages</MudSelectItem>
+            @foreach (var language in AvailableLanguages)
+            {
+                <MudSelectItem T="string" Value="@language">@language</MudSelectItem>
+            }
+        </MudSelect>
         <MudButton StartIcon="@Icons.Material.Filled.Download" 
                    Color="Color.Primary" 
                    Variant="Variant.Filled" 
@@ -53,9 +66,30 @@
 
     private MudDataGrid<ContentItem> _dataGrid;
     private string _searchString;
+    private string _selectedLanguage = "All";
 
-    private IEnumerable<ContentItem> FilteredContentItems => 
-        package.ContentItems?.Where(item => !package.IsDeleted(item)) ?? Enumerable.Empty<ContentItem>();
+    private IEnumerable<string> AvailableLanguages => 
+        package.ContentItems?
+            .Where(item => !package.IsDeleted(item) && !string.IsNullOrWhiteSpace(item.PageLanguageBranch))
+            .Select(item => item.PageLanguageBranch!)
+            .Distinct()
+            .OrderBy(lang => lang)
+        ?? Enumerable.Empty<string>();
+
+    private IEnumerable<ContentItem> FilteredContentItems
+    {
+        get
+        {
+            var items = package.ContentItems?.Where(item => !package.IsDeleted(item)) ?? Enumerable.Empty<ContentItem>();
+            
+            if (_selectedLanguage != "All" && !string.IsNullOrWhiteSpace(_selectedLanguage))
+            {
+                items = items.Where(item => item.PageLanguageBranch == _selectedLanguage);
+            }
+            
+            return items;
+        }
+    }
 
     private void DeleteItem(ContentItem item)
     {
