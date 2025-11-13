@@ -10,7 +10,8 @@ public class PackageWriter
         Stream originalPackageStream,
         HashSet<string> deletedContentIds,
         HashSet<string> deletedContentTypeGuids,
-        HashSet<int> deletedCategoryIds)
+        HashSet<int> deletedCategoryIds,
+        HashSet<int> deletedTabIds)
     {
         var outputStream = new MemoryStream();
         
@@ -34,6 +35,7 @@ public class PackageWriter
                     var xmlDoc = LoadXmlFromEntry(entry);
                     FilterContentTypes(xmlDoc, deletedContentTypeGuids);
                     FilterCategories(xmlDoc, deletedCategoryIds);
+                    FilterTabs(xmlDoc, deletedTabIds);
                     WriteXmlToArchive(newArchive, "epiDefinition.xml", xmlDoc);
                 }
                 else
@@ -130,6 +132,25 @@ public class PackageWriter
             if (idStr != null && int.TryParse(idStr, out var id) && deletedCategoryIds.Contains(id))
             {
                 category.Remove();
+            }
+        }
+    }
+    
+    private static void FilterTabs(XDocument doc, HashSet<int> deletedTabIds)
+    {
+        if (deletedTabIds.Count == 0) return;
+        
+        var tabElements = doc
+            .Descendants("ArrayOfTabDefinition")
+            .Descendants("TabDefinition")
+            .ToList();
+        
+        foreach (var tab in tabElements)
+        {
+            var idStr = tab.Element("ID")?.Value;
+            if (idStr != null && int.TryParse(idStr, out var id) && deletedTabIds.Contains(id))
+            {
+                tab.Remove();
             }
         }
     }

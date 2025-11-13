@@ -104,6 +104,10 @@
                 <MudTabPanel Text="Categories" Visible="@(package.Categories?.Any() == true)">
                     <CategoryView/>
                 </MudTabPanel>
+
+                <MudTabPanel Text="Tab Definitions" Visible="@(package.Tabs?.Any() == true)">
+                    <TabView/>
+                </MudTabPanel>
             </MudTabs>
         }
     </MudPaper>
