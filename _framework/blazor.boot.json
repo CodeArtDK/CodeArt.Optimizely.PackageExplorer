@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "CodeArt.Optimizely.PackageExplorer",
   "resources": {
-    "hash": "sha256-1xV7bO+GpiQlAjLld/S0whM1+/xafYoaPPNlKozVUZE=",
+    "hash": "sha256-aKQjKsniMEuk5FfPVKpgByDpCYwpck+LJYD7thiQ/oQ=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-9Fzd5We95Rp03dEKIAbYjPDR3eWyLbmjMlYStvxyiok="
     },
@@ -18,8 +18,8 @@
     },
     "coreAssembly": {},
     "assembly": {
-      "CodeArt.Optimizely.PackageExplorer.Core.wasm": "sha256-HuRF9a1dxcCR0tcPDLyP6S54B+qTLZSRDxfzCdorAYQ=",
-      "CodeArt.Optimizely.PackageExplorer.wasm": "sha256-MD3bRVI2zsCwE0SH4FKLUi8eccuJ2+WJvzt5HEQ9x0E=",
+      "CodeArt.Optimizely.PackageExplorer.Core.wasm": "sha256-V/BaylBTn28dTjRQRi7xV88bX/lTtsQcRygLbGN09gk=",
+      "CodeArt.Optimizely.PackageExplorer.wasm": "sha256-FOt9AQW4fms1/AaR9BJdWmBEk70oGATmFoRZuHJlwWc=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-9bPFsNUB20qYVvcV00+oOBOQJD/FD7Jt+wy9srj0rEg=",
       "Microsoft.AspNetCore.Components.wasm": "sha256-MFz+0UDtaMvKaXwKScogjUTiLzKZgRpSV8qMvfCVhhI=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-Ew8wb81QyD74VGFXXEeGxK6ELbylLGdc5OhYsdrN9E8=",
