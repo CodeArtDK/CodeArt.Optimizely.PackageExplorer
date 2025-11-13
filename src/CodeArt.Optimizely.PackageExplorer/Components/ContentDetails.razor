@@ -21,9 +21,23 @@
                         @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID == 0)
                         {
                             <MudBadge Color="Color.Info"
-                            Variant="Variant.Outlined"
+                            Variant="Variant.Filled"
                             Class="mr-2"
                             Content="@("System")" />
+                        }
+                        @if (property.Item.IsBlock)
+                        {
+                            <MudBadge Color="Color.Primary"
+                            Variant="Variant.Filled"
+                            Class="mr-2"
+                            Content="@("Block")" />
+                        }
+                        @if (property.Item.IsList)
+                        {
+                            <MudBadge Color="Color.Secondary"
+                            Variant="Variant.Filled"
+                            Class="mr-2"
+                            Content="@("List")" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -39,7 +53,19 @@
                 </TemplateColumn>
                 <TemplateColumn T="ContentProperty" Title="Value">
                     <CellTemplate Context="property">
-                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                        @if (property.Item.HasNestedContent)
+                        {
+                            @* Show a summary for nested content *@
+                            @if (property.Item.IsBlock && !string.IsNullOrEmpty(property.Item.BlockTypeName))
+                            {
+                                <MudText Class="text-muted">Block: @property.Item.BlockTypeName</MudText>
+                            }
+                            else if (property.Item.IsList)
+                            {
+                                <MudText Class="text-muted">@property.Item.ListProperties!.Count item(s)</MudText>
+                            }
+                        }
+                        else if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
                         {
                             <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
 
@@ -51,6 +77,16 @@
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
+            <ChildRowContent>
+                @if (context.Item.HasNestedContent)
+                {
+                    <MudTr>
+                        <td colspan="3" style="padding: 16px; background-color: #f5f5f5;">
+                            <PropertyDisplay Property="@context.Item" Level="0" />
+                        </td>
+                    </MudTr>
+                }
+            </ChildRowContent>
         </MudDataGrid>
     </MudCardContent>
 </MudCard>
