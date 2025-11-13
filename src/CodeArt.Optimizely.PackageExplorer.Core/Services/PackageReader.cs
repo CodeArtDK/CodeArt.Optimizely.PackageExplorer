@@ -51,5 +51,17 @@ public class PackageReader
         return ContentTypeParser.ParseCategories(xml);
     }
 
-    // Add methods for media, visitor groups, etc.
+    public List<VisitorGroup> GetAudiences()
+    {
+        try
+        {
+            var handlerMapXml = _zip.ReadXmlFile("handleddata/handlermap.xml");
+            return AudienceParser.ParseAudiences(handlerMapXml, _zip);
+        }
+        catch
+        {
+            // Return empty list if handleddata folder or files don't exist
+            return new List<VisitorGroup>();
+        }
+    }
 }

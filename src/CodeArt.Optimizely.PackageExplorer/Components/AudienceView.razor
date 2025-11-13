@@ -1,0 +1,118 @@
+@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+@if (package.Audiences?.Any() == true)
+{
+    <MudDataGrid Items="@package.Audiences" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single">
+        <Columns>
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.CriteriaOperator" Title="Criteria Operator" />
+            <PropertyColumn Property="x => x.Criteria.Count" Title="# Criteria" />
+            <PropertyColumn Property="x => x.EnableStatistics" Title="Statistics Enabled" />
+            <PropertyColumn Property="x => x.Notes" Title="Notes" />
+            <TemplateColumn Title="Details">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" 
+                                   Color="Color.Primary" 
+                                   Size="Size.Small"
+                                   OnClick="@(() => ShowDetails(context.Item))"
+                                   Title="View details" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+}
+else
+{
+    <MudText Color="Color.Secondary" Class="mt-2">
+        No audiences found in this package.
+    </MudText>
+}
+
+<MudDialog @bind-Visible="@_showDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@_selectedAudience?.Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_selectedAudience != null)
+        {
+            <MudStack Spacing="2">
+                <MudText><strong>ID:</strong> @_selectedAudience.Id</MudText>
+                <MudText><strong>Criteria Operator:</strong> @_selectedAudience.CriteriaOperator</MudText>
+                <MudText><strong>Points Threshold:</strong> @_selectedAudience.PointsThreshold</MudText>
+                <MudText><strong>Is Security Role:</strong> @_selectedAudience.IsSecurityRole</MudText>
+                <MudText><strong>Statistics Enabled:</strong> @_selectedAudience.EnableStatistics</MudText>
+                
+                @if (!string.IsNullOrEmpty(_selectedAudience.Notes))
+                {
+                    <MudText><strong>Notes:</strong> @_selectedAudience.Notes</MudText>
+                }
+                
+                @if (_selectedAudience.Criteria.Any())
+                {
+                    <MudDivider Class="my-2" />
+                    <MudText Typo="Typo.h6">Criteria (@_selectedAudience.Criteria.Count)</MudText>
+                    
+                    @foreach (var criterion in _selectedAudience.Criteria)
+                    {
+                        <MudPaper Class="pa-3 mb-2" Elevation="1">
+                            <MudStack Spacing="1">
+                                <MudText><strong>Type:</strong> @GetFriendlyTypeName(criterion.TypeName)</MudText>
+                                <MudText><strong>Enabled:</strong> @criterion.Enabled</MudText>
+                                @if (criterion.Required)
+                                {
+                                    <MudText><strong>Required:</strong> Yes</MudText>
+                                }
+                                @if (criterion.Points != 0)
+                                {
+                                    <MudText><strong>Points:</strong> @criterion.Points</MudText>
+                                }
+                                @if (!string.IsNullOrEmpty(criterion.ModelData))
+                                {
+                                    <MudText><strong>Settings:</strong> @criterion.ModelData</MudText>
+                                }
+                                @if (!string.IsNullOrEmpty(criterion.Notes))
+                                {
+                                    <MudText><strong>Notes:</strong> @criterion.Notes</MudText>
+                                }
+                            </MudStack>
+                        </MudPaper>
+                    }
+                }
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@(() => _showDialog = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private bool _showDialog = false;
+    private VisitorGroup? _selectedAudience;
+    
+    private void ShowDetails(VisitorGroup audience)
+    {
+        _selectedAudience = audience;
+        _showDialog = true;
+    }
+    
+    private string GetFriendlyTypeName(string typeName)
+    {
+        // Extract the simple class name from the full type name
+        if (string.IsNullOrEmpty(typeName))
+            return "Unknown";
+        
+        var parts = typeName.Split(',')[0].Split('.');
+        var simpleName = parts.Last();
+        
+        // Remove "Criterion" suffix if present
+        if (simpleName.EndsWith("Criterion"))
+            simpleName = simpleName.Substring(0, simpleName.Length - 9);
+        
+        // Add spaces before capital letters
+        return string.Concat(simpleName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString()));
+    }
+}
