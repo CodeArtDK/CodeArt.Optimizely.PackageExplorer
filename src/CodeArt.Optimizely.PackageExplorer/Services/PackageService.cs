@@ -21,10 +21,12 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public HashSet<string> DeletedContentIds { get; private set; } = new();
         public HashSet<string> DeletedContentTypeGuids { get; private set; } = new();
         public HashSet<int> DeletedCategoryIds { get; private set; } = new();
+        public HashSet<int> DeletedTabIds { get; private set; } = new();
         
         public bool HasModifications => DeletedContentIds.Count > 0 || 
                                        DeletedContentTypeGuids.Count > 0 || 
-                                       DeletedCategoryIds.Count > 0;
+                                       DeletedCategoryIds.Count > 0 ||
+                                       DeletedTabIds.Count > 0;
         
         // Event to notify when modifications occur
         public event Action? OnModificationsChanged;
@@ -59,6 +61,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             DeletedContentIds.Clear();
             DeletedContentTypeGuids.Clear();
             DeletedCategoryIds.Clear();
+            DeletedTabIds.Clear();
 
             await Task.Yield(); // Let the spinner render
             
@@ -207,6 +210,12 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             OnModificationsChanged?.Invoke();
         }
         
+        public void DeleteTab(TabDefinition tab)
+        {
+            DeletedTabIds.Add(tab.Id);
+            OnModificationsChanged?.Invoke();
+        }
+        
         public bool IsDeleted(ContentItem item)
         {
             return item.ContentLink != null && DeletedContentIds.Contains(item.ContentLink);
@@ -222,6 +231,11 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             return DeletedCategoryIds.Contains(category.Id);
         }
         
+        public bool IsDeleted(TabDefinition tab)
+        {
+            return DeletedTabIds.Contains(tab.Id);
+        }
+        
         public Stream ExportModifiedPackage()
         {
             if (stream == null)
@@ -233,7 +247,8 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
                 stream,
                 DeletedContentIds,
                 DeletedContentTypeGuids,
-                DeletedCategoryIds
+                DeletedCategoryIds,
+                DeletedTabIds
             );
         }
 
