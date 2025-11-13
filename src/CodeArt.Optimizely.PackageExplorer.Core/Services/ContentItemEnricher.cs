@@ -19,20 +19,20 @@ namespace CodeArt.Optimizely.PackageExplorer.Core.Services
             foreach (var item in contentItems)
             {
                 var hitem = new HierarchicalContentItem(item);
-                if (parentContentMap.ContainsKey(item.ParentLink))
+                if (item.ParentLink != null && parentContentMap.ContainsKey(item.ParentLink))
                 {
                     //We have a parent, add as a child
                     var parent = parentContentMap[item.ParentLink];
                     parent.Children.Add(hitem);
                 }
-                else if (childContentMap.ContainsKey(item.ContentLink))
+                else if (item.ContentLink != null && childContentMap.ContainsKey(item.ContentLink))
                 {
                     var child = childContentMap[item.ContentLink];
                     hierarchy.Remove(child);
                     hitem.Children.Add(child);
                     hierarchy.Add(hitem);
                 }
-                else if (assetsContentMap.ContainsKey(item.ParentLink))
+                else if (item.ParentLink != null && assetsContentMap.ContainsKey(item.ParentLink))
                 {
                     //We have an asset
                     var assetowner = assetsContentMap[item.ParentLink];
@@ -42,8 +42,14 @@ namespace CodeArt.Optimizely.PackageExplorer.Core.Services
                 {
                     hierarchy.Add(hitem);
                 }
-                parentContentMap.TryAdd(item.ContentLink, hitem);
-                childContentMap.TryAdd(item.ParentLink, hitem);
+                if (item.ContentLink != null)
+                {
+                    parentContentMap.TryAdd(item.ContentLink, hitem);
+                }
+                if (item.ParentLink != null)
+                {
+                    childContentMap.TryAdd(item.ParentLink, hitem);
+                }
                 if (item.ContentAssetsID != null)
                 {
                     assetsContentMap.TryAdd(item.ContentAssetsID, hitem);
