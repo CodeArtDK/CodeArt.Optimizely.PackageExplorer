@@ -60,7 +60,7 @@
 
 @code {
     [CascadingParameter]
-    IDialogReference? MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; }
 
     [Parameter]
     public IEnumerable<ContentItem> Items { get; set; } = Enumerable.Empty<ContentItem>();
