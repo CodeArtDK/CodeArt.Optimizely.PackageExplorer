@@ -74,7 +74,49 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        // Register service worker with update handling
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
+                .then(function(registration) {
+                    console.info('Service Worker registered with scope:', registration.scope);
+                    
+                    // Check for updates every hour
+                    setInterval(function() {
+                        registration.update();
+                    }, 60 * 60 * 1000);
+                    
+                    // Check for updates on page load
+                    registration.update();
+                    
+                    // Listen for waiting service worker (new version available)
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', function() {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New service worker installed, reload to activate
+                                    console.info('New service worker available, reloading...');
+                                }
+                            });
+                        }
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Service Worker registration failed:', error);
+                });
+            
+            // Reload page when new service worker takes control
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (!refreshing) {
+                    refreshing = true;
+                    console.info('New service worker activated, reloading page...');
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
     <script src="js/prism.js"></script>
     <script>
         window.highlightCode = function () {
