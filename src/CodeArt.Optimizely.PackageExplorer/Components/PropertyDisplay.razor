@@ -1,0 +1,115 @@
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@* Recursive component for displaying properties with nested blocks and lists *@
+
+@if (Level > MaxRenderDepth)
+{
+    <MudText Color="Color.Error" Typo="Typo.caption">
+        Maximum nesting depth exceeded (Level @Level > @MaxRenderDepth)
+    </MudText>
+}
+else if (Property.IsBlock)
+{
+    @* Display as an inline block *@
+    <div class="property-block" style="margin-left: @(Level * 20)px;">
+        <div class="property-header">
+            <MudBadge Color="Color.Primary" 
+                      Variant="Variant.Filled"
+                      Class="mr-2"
+                      Content="@("Block")" />
+            <MudText Inline="true" Typo="Typo.body2">
+                <strong>@Property.Name</strong>
+                @if (!string.IsNullOrEmpty(Property.BlockTypeName))
+                {
+                    <span class="ml-2 text-muted">(@Property.BlockTypeName)</span>
+                }
+            </MudText>
+        </div>
+        
+        @if (Property.BlockProperties != null && Property.BlockProperties.Count > 0)
+        {
+            <div class="property-children" style="border-left: 2px solid #e0e0e0; margin-left: 10px; padding-left: 10px; margin-top: 8px;">
+                @foreach (var childProp in Property.BlockProperties)
+                {
+                    <PropertyDisplay Property="@childProp" Level="@(Level + 1)" />
+                }
+            </div>
+        }
+    </div>
+}
+else if (Property.IsList)
+{
+    @* Display as a list *@
+    <div class="property-list" style="margin-left: @(Level * 20)px;">
+        <div class="property-header">
+            <MudBadge Color="Color.Secondary" 
+                      Variant="Variant.Filled"
+                      Class="mr-2"
+                      Content="@("List")" />
+            <MudText Inline="true" Typo="Typo.body2">
+                <strong>@Property.Name</strong>
+                <span class="ml-2 text-muted">(@(Property.ListProperties?.Count ?? 0) items)</span>
+            </MudText>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(Property.Value))
+        {
+            <div style="margin-left: 30px; margin-top: 4px;">
+                <MudText Typo="Typo.caption" Class="text-muted">
+                    Raw Value: @Property.Value
+                </MudText>
+            </div>
+        }
+        
+        <div class="property-children" style="border-left: 2px solid #e0e0e0; margin-left: 10px; padding-left: 10px; margin-top: 8px;">
+            @if (Property.ListProperties != null)
+            {
+                @for (int i = 0; i < Property.ListProperties.Count; i++)
+                {
+                    var listItem = Property.ListProperties[i];
+                    <div class="list-item" style="margin-bottom: 8px;">
+                        <MudText Typo="Typo.caption" Class="text-muted">
+                            Item @(i + 1):
+                        </MudText>
+                        <PropertyDisplay Property="@listItem" Level="@(Level + 1)" />
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+else
+{
+    @* Display as a simple property *@
+    <div class="property-simple" style="margin-left: @(Level * 20)px; margin-bottom: 4px;">
+        <MudText Inline="true" Typo="Typo.body2">
+            <strong>@Property.Name:</strong>
+            @if (!string.IsNullOrEmpty(Property.Value))
+            {
+                @if (Property.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                {
+                    <pre style="display: inline; margin: 0;"><code class="language-html">@Property.Value</code></pre>
+                }
+                else
+                {
+                    <span class="ml-1">@Property.Value</span>
+                }
+            }
+            else
+            {
+                <span class="ml-1 text-muted">(empty)</span>
+            }
+        </MudText>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public ContentProperty Property { get; set; } = null!;
+    
+    [Parameter]
+    public int Level { get; set; } = 0;
+    
+    // Prevent excessive rendering depth
+    private const int MaxRenderDepth = 50;
+}

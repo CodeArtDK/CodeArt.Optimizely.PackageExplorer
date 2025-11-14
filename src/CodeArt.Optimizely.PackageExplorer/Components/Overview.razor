@@ -14,7 +14,8 @@
 
 @code {
 
-    private IEnumerable<IGrouping<string, ContentItem>> groups => package.ContentItems.GroupBy(ci => ci.ContentTypeName);
+    private IEnumerable<IGrouping<string, ContentItem>> groups => 
+        package.ContentItems?.GroupBy(ci => ci.ContentTypeName ?? "Unknown") ?? Enumerable.Empty<IGrouping<string, ContentItem>>();
     
 
 }

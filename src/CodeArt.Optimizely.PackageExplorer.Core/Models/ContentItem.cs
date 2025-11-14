@@ -131,6 +131,22 @@ public class ContentProperty
     public int OwnerTab { get; set; }
 
     public int PropertyDefinitionID { get; set; }
+    
+    // For block properties (inline blocks)
+    public List<ContentProperty>? BlockProperties { get; set; }
+    
+    // For list properties (lists of blocks or items)
+    public List<ContentProperty>? ListProperties { get; set; }
+    
+    // Block type information for blocks
+    public string? BlockTypeName { get; set; }
+    public string? BlockTypeGuid { get; set; }
+    
+    // Helper properties to identify property types
+    public bool IsBlock => Type == "Block" && BlockProperties != null && BlockProperties.Count > 0;
+    public bool IsList => ListProperties != null && ListProperties.Count > 0;
+    public bool HasNestedContent => IsBlock || IsList;
+    
     public override string ToString()
     {
         return Name + ": " + Value?.ToString();
