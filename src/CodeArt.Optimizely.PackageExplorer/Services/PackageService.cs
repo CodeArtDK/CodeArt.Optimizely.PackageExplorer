@@ -14,6 +14,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public List<HierarchicalContentItem>? Hierarchy { get; private set; }
         public List<ContentTypeDefinition>? ContentTypes { get; private set; }
         public List<CategoryDefinition>? Categories { get; private set; }
+        public List<VisitorGroup>? Audiences { get; private set; }
         public PackageDebugInfo DebugInfo { get; private set; } = new();
         public bool IsInDebugMode => DebugInfo.HasErrors;
         
@@ -54,6 +55,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             ContentItems = null;
             ContentTypes = null;
             Categories = null;
+            Audiences = null;
             Tabs = null;
             Hierarchy = null;
             
@@ -152,6 +154,24 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
                     {
                         Stage = "Loading Tabs (epiDefinition.xml)",
                         Message = "Failed to parse tabs",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
+
+                // Try to load audiences (visitor groups)
+                try
+                {
+                    Audiences = packageReader.GetAudiences();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Audiences (handleddata)",
+                        Message = "Failed to parse audiences",
                         Details = ex.Message,
                         StackTrace = ex.StackTrace
                     });

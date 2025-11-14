@@ -97,8 +97,8 @@
                     <MediaView/>
                 </MudTabPanel>
 
-                <MudTabPanel Text="Visitor Groups" Visible="false">
-                    <MudText>Visitor Groups will appear here</MudText>
+                <MudTabPanel Text="@($"Audiences ({package.Audiences?.Count ?? 0})")" Visible="@(package.Audiences?.Any() == true)">
+                    <AudienceView/>
                 </MudTabPanel>
 
                 <MudTabPanel Text="Categories" Visible="@(package.Categories?.Any() == true)">
