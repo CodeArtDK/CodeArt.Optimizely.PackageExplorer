@@ -6,57 +6,62 @@
 <MudCard>
     <MudCardHeader>
         <CardHeaderContent>
-            <MudText Typo="Typo.h6">@("[" + Item.ContentTypeName + "] " + Item.Name)</MudText>
+            <MudText Typo="Typo.h6">@($"[{Item?.ContentTypeName ?? "?"}] {Item?.Name ?? "(no name)"}")</MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        @if(package.GetContentTypeFromContent(Item).Base=="Image"){
+        @* Guard against null item or null content type *@
+        @{
+            var contentType = Item is not null ? package?.GetContentTypeFromContent(Item) : null;
+        }
+        @if (Item is not null && contentType?.Base == "Image")
+        {
             <ImageBlobView BlobReference="@Item.TryGetProperty("BinaryData")" />
         }
 
-        <MudDataGrid Items="@Item.Properties" Dense="true">
-            <Columns>
-                <TemplateColumn T="ContentProperty">
-                    <CellTemplate Context="property">
-                        @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID == 0)
-                        {
-                            <MudBadge Color="Color.Info"
-                            Variant="Variant.Outlined"
-                            Class="mr-2"
-                            Content="@("System")" />
-                        }
-                    </CellTemplate>
-                </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Name">
-                    <CellTemplate Context="property">
-
-                        <MudText>
-
-                            @property.Item.Name
-
-                        </MudText>
-                    </CellTemplate>
-                </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Value">
-                    <CellTemplate Context="property">
-                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
-                        {
-                            <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
-
-                        }
-                        else
-                        {
-                            <MudText>@property.Item.Value</MudText>
-                        }
-                    </CellTemplate>
-                </TemplateColumn>
-            </Columns>
-        </MudDataGrid>
+        @if (Item?.Properties is not null)
+        {
+            <MudDataGrid Items="@Item.Properties" Dense="true">
+                <Columns>
+                    <TemplateColumn T="ContentProperty">
+                        <CellTemplate Context="property">
+                            @if (property?.Item?.Name?.StartsWith("Page") == true && property.Item.PropertyDefinitionID == 0)
+                            {
+                                <MudBadge Color="Color.Info"
+                                          Variant="Variant.Outlined"
+                                          Class="mr-2"
+                                          Content="@("System")" />
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn T="ContentProperty" Title="Name">
+                        <CellTemplate Context="property">
+                            <MudText>
+                                @property?.Item?.Name
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn T="ContentProperty" Title="Value">
+                        <CellTemplate Context="property">
+                            @if (property?.Item?.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                            {
+                                <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+                            }
+                            else
+                            {
+                                <MudText>@property?.Item?.Value</MudText>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        }
+        else
+        {
+            <MudText Color="Color.Error">No properties available for this content item.</MudText>
+        }
     </MudCardContent>
 </MudCard>
-
-
-
 
 @code {
 
@@ -65,7 +70,8 @@
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender){
+        if (firstRender)
+        {
             await JS.InvokeVoidAsync("Prism.highlightAll");
         }
     }
