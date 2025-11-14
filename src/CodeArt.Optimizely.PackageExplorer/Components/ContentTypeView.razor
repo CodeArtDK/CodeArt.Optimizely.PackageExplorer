@@ -45,6 +45,26 @@
                 <MudCardContent>
                     <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true">
                         <Columns>
+                            <TemplateColumn T="ContentPropertyDefinition" Title="Actions">
+                                <CellTemplate Context="item">
+                                    @if (_editingPropertyDef == item.Item)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Check" 
+                                                     Color="Color.Success" 
+                                                     Size="Size.Small"
+                                                     OnClick="@(() => ClearEdit())" />
+                                    }
+                                    else
+                                    {
+                                        <MudMenu Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Dense="true">
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "EditCaption"))">Edit Caption</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsSearchable"))">Toggle Searchable</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsRequired"))">Toggle Required</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsLocalizable"))">Toggle Localizable</MudMenuItem>
+                                        </MudMenu>
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
                             <PropertyColumn Property="x => x.Type"/>
                             <PropertyColumn Property="x => x.Name" Title="Name"/>
                             <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption">
@@ -126,26 +146,6 @@
                                         {
                                             <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
                                         }
-                                    }
-                                </CellTemplate>
-                            </TemplateColumn>
-                            <TemplateColumn T="ContentPropertyDefinition" Title="Actions">
-                                <CellTemplate Context="item">
-                                    @if (_editingPropertyDef == item.Item)
-                                    {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Check" 
-                                                     Color="Color.Success" 
-                                                     Size="Size.Small"
-                                                     OnClick="@(() => ClearEdit())" />
-                                    }
-                                    else
-                                    {
-                                        <MudMenu Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Dense="true">
-                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "EditCaption"))">Edit Caption</MudMenuItem>
-                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsSearchable"))">Toggle Searchable</MudMenuItem>
-                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsRequired"))">Toggle Required</MudMenuItem>
-                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsLocalizable"))">Toggle Localizable</MudMenuItem>
-                                        </MudMenu>
                                     }
                                 </CellTemplate>
                             </TemplateColumn>

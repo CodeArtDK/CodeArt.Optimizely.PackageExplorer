@@ -21,6 +21,28 @@
 
         <MudDataGrid Items="@Item.Properties" Dense="true">
             <Columns>
+                <TemplateColumn T="ContentProperty" Title="Actions">
+                    <CellTemplate Context="property">
+                        @if (_editingProperty == property.Item)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Check" 
+                                         Color="Color.Success" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => SavePropertyEdit(property.Item))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                         Color="Color.Default" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => CancelPropertyEdit())" />
+                        }
+                        else
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                         Color="Color.Primary" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => StartPropertyEdit(property.Item))" />
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
                 <TemplateColumn T="ContentProperty">
                     <CellTemplate Context="property">
                         @if (property.Item.Name.StartsWith("Page") && property.Item.PropertyDefinitionID == 0)
@@ -76,28 +98,6 @@
                             {
                                 <MudText>@property.Item.Value</MudText>
                             }
-                        }
-                    </CellTemplate>
-                </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Actions">
-                    <CellTemplate Context="property">
-                        @if (_editingProperty == property.Item)
-                        {
-                            <MudIconButton Icon="@Icons.Material.Filled.Check" 
-                                         Color="Color.Success" 
-                                         Size="Size.Small"
-                                         OnClick="@(() => SavePropertyEdit(property.Item))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Close" 
-                                         Color="Color.Default" 
-                                         Size="Size.Small"
-                                         OnClick="@(() => CancelPropertyEdit())" />
-                        }
-                        else
-                        {
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                         Color="Color.Primary" 
-                                         Size="Size.Small"
-                                         OnClick="@(() => StartPropertyEdit(property.Item))" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
