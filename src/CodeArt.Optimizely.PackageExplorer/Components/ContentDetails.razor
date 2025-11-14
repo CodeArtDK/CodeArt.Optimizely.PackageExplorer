@@ -9,7 +9,7 @@
             <MudText Typo="Typo.h6">@("[" + Item.ContentTypeName + "] " + Item.Name)</MudText>
         </CardHeaderContent>
         <CardHeaderActions>
-            <MudTooltip Text="Double-click on a property value to edit it">
+            <MudTooltip Text="Click the edit icon next to any property to edit it">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
             </MudTooltip>
         </CardHeaderActions>
@@ -19,8 +19,7 @@
             <ImageBlobView BlobReference="@Item.TryGetProperty("BinaryData")" />
         }
 
-        <MudDataGrid Items="@Item.Properties" Dense="true" EditMode="DataGridEditMode.Cell" 
-                     CommittedItemChanges="@OnPropertyChangedEventCallback">
+        <MudDataGrid Items="@Item.Properties" Dense="true">
             <Columns>
                 <TemplateColumn T="ContentProperty">
                     <CellTemplate Context="property">
@@ -42,41 +41,65 @@
                 </TemplateColumn>
                 <TemplateColumn T="ContentProperty" Title="Name">
                     <CellTemplate Context="property">
-
-                        <MudText>
-
-                            @property.Item.Name
-
-                        </MudText>
+                        <MudText>@property.Item.Name</MudText>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn T="ContentProperty" Title="Value (double-click to edit)">
+                <TemplateColumn T="ContentProperty" Title="Value">
                     <CellTemplate Context="property">
-                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                        @if (_editingProperty == property.Item)
                         {
-                            <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
-
+                            @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                            {
+                                <MudTextField @bind-Value="property.Item.Value" 
+                                            Lines="5" 
+                                            Variant="Variant.Outlined"
+                                            FullWidth="true"
+                                            OnBlur="@(() => SavePropertyEdit(property.Item))"
+                                            Immediate="true" />
+                            }
+                            else
+                            {
+                                <MudTextField @bind-Value="property.Item.Value" 
+                                            Variant="Variant.Outlined"
+                                            FullWidth="true"
+                                            OnBlur="@(() => SavePropertyEdit(property.Item))"
+                                            Immediate="true" />
+                            }
                         }
                         else
                         {
-                            <MudText>@property.Item.Value</MudText>
+                            @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                            {
+                                <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+                            }
+                            else
+                            {
+                                <MudText>@property.Item.Value</MudText>
+                            }
                         }
                     </CellTemplate>
-                    <EditTemplate Context="property">
-                        @if (property.Item.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                </TemplateColumn>
+                <TemplateColumn T="ContentProperty" Title="Actions">
+                    <CellTemplate Context="property">
+                        @if (_editingProperty == property.Item)
                         {
-                            <MudTextField @bind-Value="property.Item.Value" 
-                                        Lines="5" 
-                                        Variant="Variant.Outlined"
-                                        FullWidth="true" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Check" 
+                                         Color="Color.Success" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => SavePropertyEdit(property.Item))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                         Color="Color.Default" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => CancelPropertyEdit())" />
                         }
                         else
                         {
-                            <MudTextField @bind-Value="property.Item.Value" 
-                                        Variant="Variant.Outlined"
-                                        FullWidth="true" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                         Color="Color.Primary" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => StartPropertyEdit(property.Item))" />
                         }
-                    </EditTemplate>
+                    </CellTemplate>
                 </TemplateColumn>
             </Columns>
         </MudDataGrid>
@@ -91,6 +114,9 @@
     [Parameter]
     public ContentItem Item { get; set; }
 
+    private ContentProperty? _editingProperty;
+    private string? _originalValue;
+
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {
         if(firstRender){
@@ -98,16 +124,30 @@
         }
     }
 
-    private EventCallback<ContentProperty> OnPropertyChangedEventCallback => 
-        EventCallback.Factory.Create<ContentProperty>(this, OnPropertyChanged);
-
-    private void OnPropertyChanged(ContentProperty property)
+    private void StartPropertyEdit(ContentProperty property)
     {
-        // Update the property value in the package service
-        if (property.Value != null)
+        _editingProperty = property;
+        _originalValue = property.Value;
+    }
+
+    private void SavePropertyEdit(ContentProperty property)
+    {
+        if (property.Value != null && property.Value != _originalValue)
         {
             package.UpdateContentProperty(Item, property.Name, property.Value);
         }
+        _editingProperty = null;
+        _originalValue = null;
+    }
+
+    private void CancelPropertyEdit()
+    {
+        if (_editingProperty != null && _originalValue != null)
+        {
+            _editingProperty.Value = _originalValue;
+        }
+        _editingProperty = null;
+        _originalValue = null;
     }
 
 }

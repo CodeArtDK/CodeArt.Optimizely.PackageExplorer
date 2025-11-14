@@ -37,80 +37,117 @@
                         <MudText Typo="Typo.h6">@context.Item.Name</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
-                        <MudTooltip Text="Double-click on Edit Caption, Searchable, Required, or Localizable cells to edit">
+                        <MudTooltip Text="Click the edit icon next to property fields to edit them">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
                         </MudTooltip>
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true" 
-                                 EditMode="DataGridEditMode.Cell">
+                    <MudDataGrid Items="@context.Item.Properties.OrderBy(x => x.FieldOrder)" Dense="true">
                         <Columns>
                             <PropertyColumn Property="x => x.Type"/>
                             <PropertyColumn Property="x => x.Name" Title="Name"/>
-                            <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption (editable)">
+                            <TemplateColumn T="ContentPropertyDefinition" Title="Edit Caption">
                                 <CellTemplate Context="item">
-                                    <MudText>@item.Item.EditCaption</MudText>
-                                </CellTemplate>
-                                <EditTemplate Context="item">
-                                    <MudTextField Value="item.Item.EditCaption"
-                                                Variant="Variant.Outlined"
-                                                ValueChanged="@((string val) => { item.Item.EditCaption = val; OnPropertyFieldChanged(context.Item, item.Item, "EditCaption", val); })" />
-                                </EditTemplate>
-                            </TemplateColumn>
-                            <TemplateColumn Title="Searchable (editable)">
-                                <CellTemplate Context="item">
-                                    @if (item.Item.IsSearchable)
+                                    @if (_editingPropertyDef == item.Item && _editingField == "EditCaption")
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        <MudTextField Value="@item.Item.EditCaption"
+                                                    Variant="Variant.Outlined"
+                                                    Immediate="true"
+                                                    ValueChanged="@((string val) => { item.Item.EditCaption = val; })"
+                                                    OnBlur="@(() => SavePropertyDefEdit(context.Item, item.Item, "EditCaption", item.Item.EditCaption))" />
                                     }
                                     else
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        <MudText>@item.Item.EditCaption</MudText>
                                     }
                                 </CellTemplate>
-                                <EditTemplate Context="item">
-                                    <MudCheckBox Value="item.Item.IsSearchable" 
-                                               Color="Color.Primary"
-                                               T="bool"
-                                               ValueChanged="@((bool val) => { item.Item.IsSearchable = val; OnPropertyFieldChanged(context.Item, item.Item, "IsSearchable", val); })" />
-                                </EditTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Required (editable)">
+                            <TemplateColumn Title="Searchable">
                                 <CellTemplate Context="item">
-                                    @if (item.Item.IsRequired)
+                                    @if (_editingPropertyDef == item.Item && _editingField == "IsSearchable")
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        <MudCheckBox Value="item.Item.IsSearchable" 
+                                                   Color="Color.Primary"
+                                                   T="bool"
+                                                   ValueChanged="@((bool val) => { item.Item.IsSearchable = val; SavePropertyDefEdit(context.Item, item.Item, "IsSearchable", val); })" />
                                     }
                                     else
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        @if (item.Item.IsSearchable)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        }
+                                        else
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        }
                                     }
                                 </CellTemplate>
-                                <EditTemplate Context="item">
-                                    <MudCheckBox Value="item.Item.IsRequired" 
-                                               Color="Color.Primary"
-                                               T="bool"
-                                               ValueChanged="@((bool val) => { item.Item.IsRequired = val; OnPropertyFieldChanged(context.Item, item.Item, "IsRequired", val); })" />
-                                </EditTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="Localizable (editable)">
+                            <TemplateColumn Title="Required">
                                 <CellTemplate Context="item">
-                                    @if (item.Item.IsLocalizable)
+                                    @if (_editingPropertyDef == item.Item && _editingField == "IsRequired")
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        <MudCheckBox Value="item.Item.IsRequired" 
+                                                   Color="Color.Primary"
+                                                   T="bool"
+                                                   ValueChanged="@((bool val) => { item.Item.IsRequired = val; SavePropertyDefEdit(context.Item, item.Item, "IsRequired", val); })" />
                                     }
                                     else
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        @if (item.Item.IsRequired)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        }
+                                        else
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        }
                                     }
                                 </CellTemplate>
-                                <EditTemplate Context="item">
-                                    <MudCheckBox Value="item.Item.IsLocalizable" 
-                                               Color="Color.Primary"
-                                               T="bool"
-                                               ValueChanged="@((bool val) => { item.Item.IsLocalizable = val; OnPropertyFieldChanged(context.Item, item.Item, "IsLocalizable", val); })" />
-                                </EditTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Localizable">
+                                <CellTemplate Context="item">
+                                    @if (_editingPropertyDef == item.Item && _editingField == "IsLocalizable")
+                                    {
+                                        <MudCheckBox Value="item.Item.IsLocalizable" 
+                                                   Color="Color.Primary"
+                                                   T="bool"
+                                                   ValueChanged="@((bool val) => { item.Item.IsLocalizable = val; SavePropertyDefEdit(context.Item, item.Item, "IsLocalizable", val); })" />
+                                    }
+                                    else
+                                    {
+                                        @if (item.Item.IsLocalizable)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                        }
+                                        else
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                                        }
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn T="ContentPropertyDefinition" Title="Actions">
+                                <CellTemplate Context="item">
+                                    @if (_editingPropertyDef == item.Item)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Check" 
+                                                     Color="Color.Success" 
+                                                     Size="Size.Small"
+                                                     OnClick="@(() => ClearEdit())" />
+                                    }
+                                    else
+                                    {
+                                        <MudMenu Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Dense="true">
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "EditCaption"))">Edit Caption</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsSearchable"))">Toggle Searchable</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsRequired"))">Toggle Required</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => StartPropertyDefEdit(item.Item, "IsLocalizable"))">Toggle Localizable</MudMenuItem>
+                                        </MudMenu>
+                                    }
+                                </CellTemplate>
                             </TemplateColumn>
                         </Columns>
                     </MudDataGrid>
@@ -130,15 +167,32 @@ else
     private IEnumerable<ContentTypeDefinition> FilteredContentTypes => 
         package.ContentTypes?.Where(ct => !package.IsDeleted(ct)) ?? Enumerable.Empty<ContentTypeDefinition>();
     
+    private ContentPropertyDefinition? _editingPropertyDef;
+    private string? _editingField;
+    
     private void DeleteContentType(ContentTypeDefinition contentType)
     {
         package.DeleteContentType(contentType);
         StateHasChanged();
     }
     
-    private void OnPropertyFieldChanged(ContentTypeDefinition contentType, ContentPropertyDefinition property, string fieldName, object newValue)
+    private void StartPropertyDefEdit(ContentPropertyDefinition property, string fieldName)
+    {
+        _editingPropertyDef = property;
+        _editingField = fieldName;
+    }
+    
+    private void SavePropertyDefEdit(ContentTypeDefinition contentType, ContentPropertyDefinition property, string fieldName, object newValue)
     {
         package.UpdateContentTypeProperty(contentType, property, fieldName, newValue);
+        _editingPropertyDef = null;
+        _editingField = null;
         StateHasChanged();
+    }
+    
+    private void ClearEdit()
+    {
+        _editingPropertyDef = null;
+        _editingField = null;
     }
 }
