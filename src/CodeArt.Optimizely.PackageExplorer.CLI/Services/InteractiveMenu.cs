@@ -16,6 +16,19 @@ public class InteractiveMenu
         _packageReader = new PackageReader(packagePath);
     }
 
+    private static void WaitForKey()
+    {
+        if (!Console.IsInputRedirected)
+        {
+            WaitForKey();
+
+        }
+        else
+        {
+            Console.WriteLine();
+        }
+    }
+
     public void Run()
     {
         Console.WriteLine("\n═══════════════════════════════════════════════════════════");
@@ -96,8 +109,7 @@ public class InteractiveMenu
         DisplayService.DisplayContentSummary(_contentItems);
         DisplayService.DisplayContentList(_contentItems);
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
     }
 
     private void ViewContentTypes()
@@ -113,8 +125,8 @@ public class InteractiveMenu
         DisplayService.DisplayContentTypesSummary(_contentTypes);
         DisplayService.DisplayContentTypesList(_contentTypes);
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ViewMedia()
@@ -143,8 +155,8 @@ public class InteractiveMenu
         DisplayService.DisplayMediaSummary(mediaItems);
         DisplayService.DisplayMediaList(mediaItems);
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ViewCategories()
@@ -160,8 +172,8 @@ public class InteractiveMenu
         DisplayService.DisplayCategoriesSummary(_categories);
         DisplayService.DisplayCategoriesList(_categories);
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ViewAudiences()
@@ -177,8 +189,8 @@ public class InteractiveMenu
         DisplayService.DisplayAudiencesSummary(_audiences);
         DisplayService.DisplayAudiencesList(_audiences);
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ExportContentMenu()
@@ -189,7 +201,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo content items found in the package.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -209,7 +221,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo properties specified. Export cancelled.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -230,7 +242,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo output path specified. Export cancelled.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -262,8 +274,8 @@ public class InteractiveMenu
             Console.WriteLine($"\nError during export: {ex.Message}");
         }
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ExportContentTypesMenu()
@@ -274,7 +286,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo content types found in the package.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -295,7 +307,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo output path specified. Export cancelled.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -327,8 +339,8 @@ public class InteractiveMenu
             Console.WriteLine($"\nError during export: {ex.Message}");
         }
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void ExportCategoriesMenu()
@@ -339,7 +351,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo categories found in the package.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -360,7 +372,7 @@ public class InteractiveMenu
         {
             Console.WriteLine("\nNo output path specified. Export cancelled.");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+
             return;
         }
 
@@ -392,8 +404,8 @@ public class InteractiveMenu
             Console.WriteLine($"\nError during export: {ex.Message}");
         }
 
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
+        WaitForKey();
+
     }
 
     private void LoadContentItems()
