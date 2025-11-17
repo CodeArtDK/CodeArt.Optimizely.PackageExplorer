@@ -64,4 +64,22 @@ public class PackageReader
             return new List<VisitorGroup>();
         }
     }
+
+    /// <summary>
+    /// Stream content items for large files. Returns IEnumerable for memory efficiency.
+    /// Use this when working with very large package files.
+    /// </summary>
+    public IEnumerable<ContentItem> StreamContentItems()
+    {
+        return StreamingPackageParser.StreamContentItems(_zip.Archive);
+    }
+
+    /// <summary>
+    /// Count content items without loading them all into memory.
+    /// Useful for progress reporting with large files.
+    /// </summary>
+    public int CountContentItems()
+    {
+        return StreamingPackageParser.CountContentItems(_zip.Archive);
+    }
 }
