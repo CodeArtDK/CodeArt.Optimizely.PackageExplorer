@@ -174,22 +174,46 @@ internal class Program
                         return;
                     }
 
-                    var contentItems = reader.GetContentItems();
                     var propList = properties.SelectMany(p => p.Split(',', StringSplitOptions.RemoveEmptyEntries))
                                             .Select(p => p.Trim())
                                             .ToList();
 
-                    if (formatLower == "csv")
+                    // Check file size to determine if we should use streaming
+                    Console.WriteLine("Analyzing package size...");
+                    var itemCount = reader.CountContentItems();
+                    Console.WriteLine($"Package contains {itemCount} content items.");
+
+                    if (itemCount > 10000)
                     {
-                        ExportService.ExportContentToCsv(contentItems, propList, output);
-                    }
-                    else if (formatLower == "json")
-                    {
-                        ExportService.ExportContentToJson(contentItems, propList, output);
+                        Console.WriteLine("Large package detected. Using optimized streaming export...");
+                        if (formatLower == "csv")
+                        {
+                            ExportService.ExportContentToCsvStreaming(reader, propList, output);
+                        }
+                        else if (formatLower == "json")
+                        {
+                            ExportService.ExportContentToJsonStreaming(reader, propList, output);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unknown format: {format}. Valid formats are: csv, json");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine($"Unknown format: {format}. Valid formats are: csv, json");
+                        var contentItems = reader.GetContentItems();
+                        if (formatLower == "csv")
+                        {
+                            ExportService.ExportContentToCsv(contentItems, propList, output);
+                        }
+                        else if (formatLower == "json")
+                        {
+                            ExportService.ExportContentToJson(contentItems, propList, output);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unknown format: {format}. Valid formats are: csv, json");
+                        }
                     }
                     break;
 

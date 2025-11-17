@@ -14,6 +14,8 @@ public class ZipPackage : IDisposable
 
     private static readonly Regex NumericCharRefRegex = new("&#(x?[0-9A-Fa-f]+);", RegexOptions.Compiled);
 
+    public ZipArchive Archive => _zipArchive;
+
     public ZipPackage(string path)
     {
         var stream = File.OpenRead(path);

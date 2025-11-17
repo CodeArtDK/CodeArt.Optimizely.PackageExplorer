@@ -1,4 +1,5 @@
 using CodeArt.Optimizely.PackageExplorer.Core.Models;
+using CodeArt.Optimizely.PackageExplorer.Core.Services;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
@@ -8,6 +9,8 @@ namespace CodeArt.Optimizely.PackageExplorer.CLI.Services;
 
 public class ExportService
 {
+    private const int LARGE_FILE_THRESHOLD = 10_000; // Items count threshold for streaming
+
     public static void ExportContentToCsv(List<ContentItem> items, List<string> properties, string outputPath)
     {
         using var writer = new StreamWriter(outputPath);
@@ -34,6 +37,43 @@ public class ExportService
         Console.WriteLine($"Exported {items.Count} items to {outputPath}");
     }
 
+    /// <summary>
+    /// Export content using streaming approach for very large files.
+    /// This is memory-efficient.
+    /// </summary>
+    public static void ExportContentToCsvStreaming(PackageReader reader, List<string> properties, string outputPath)
+    {
+        using var writer = new StreamWriter(outputPath);
+        using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture));
+
+        // Write headers
+        foreach (var prop in properties)
+        {
+            csv.WriteField(prop);
+        }
+        csv.NextRecord();
+
+        int count = 0;
+        // Stream and write data
+        foreach (var item in reader.StreamContentItems())
+        {
+            foreach (var prop in properties)
+            {
+                var value = item.TryGetProperty(prop) ?? string.Empty;
+                csv.WriteField(value);
+            }
+            csv.NextRecord();
+            count++;
+
+            if (count % 1000 == 0)
+            {
+                Console.Write($"\rExporting... {count} items processed");
+            }
+        }
+
+        Console.WriteLine($"\rExported {count} items to {outputPath}");
+    }
+
     public static void ExportContentToJson(List<ContentItem> items, List<string> properties, string outputPath)
     {
         var exportData = items.Select(item =>
@@ -55,6 +95,40 @@ public class ExportService
         File.WriteAllText(outputPath, json);
 
         Console.WriteLine($"Exported {items.Count} items to {outputPath}");
+    }
+
+    /// <summary>
+    /// Export content to JSON using streaming approach for very large files.
+    /// </summary>
+    public static void ExportContentToJsonStreaming(PackageReader reader, List<string> properties, string outputPath)
+    {
+        using var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
+        using var writer = new Utf8JsonWriter(fileStream, new JsonWriterOptions { Indented = true });
+
+        writer.WriteStartArray();
+
+        int count = 0;
+        foreach (var item in reader.StreamContentItems())
+        {
+            writer.WriteStartObject();
+            foreach (var prop in properties)
+            {
+                var value = item.TryGetProperty(prop) ?? string.Empty;
+                writer.WriteString(prop, value);
+            }
+            writer.WriteEndObject();
+            count++;
+
+            if (count % 1000 == 0)
+            {
+                Console.Write($"\rExporting... {count} items processed");
+            }
+        }
+
+        writer.WriteEndArray();
+        writer.Flush();
+
+        Console.WriteLine($"\rExported {count} items to {outputPath}");
     }
 
     public static void ExportContentTypesToCsv(List<ContentTypeDefinition> contentTypes, string outputPath)
