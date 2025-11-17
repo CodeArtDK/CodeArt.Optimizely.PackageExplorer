@@ -64,10 +64,19 @@
 
     protected async override Task OnInitializedAsync()
     {
-        contentDic=package.ContentItems!.ToDictionary(ci => ci.ContentLink!, ci => ci);
-        ownerLst = package.ContentItems!.Where(ci => ci.ContentAssetsID!=null).Select(ci => ci.ContentAssetsID.Replace("-","")).Distinct().ToList();
+        // Filter out items with null ContentLink before creating dictionary
+        contentDic = package.ContentItems!
+            .Where(ci => ci.ContentLink != null)
+            .ToDictionary(ci => ci.ContentLink!, ci => ci);
+        
+        ownerLst = package.ContentItems!
+            .Where(ci => ci.ContentAssetsID != null)
+            .Select(ci => ci.ContentAssetsID!.Replace("-",""))
+            .Distinct()
+            .ToList();
+        
         initialTreeItems = package.ContentItems.Where(ci =>
-            !contentDic.ContainsKey(ci.ParentLink)
+            (ci.ParentLink == null || !contentDic.ContainsKey(ci.ParentLink))
             && !ownerLst.Contains(ci.PageURLSegment)
             && ci.EPiSystemReference != "EPi:GlobalResourcesRoot"
         ).Select(ci => CreateTreeItem(ci)).ToList();

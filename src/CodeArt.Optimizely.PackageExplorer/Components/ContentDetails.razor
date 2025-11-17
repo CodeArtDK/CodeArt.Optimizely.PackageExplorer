@@ -10,7 +10,10 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        @if(package.GetContentTypeFromContent(Item).Base=="Image"){
+        @{
+            var contentType = package.GetContentTypeFromContent(Item);
+        }
+        @if(contentType?.Base == "Image"){
             <ImageBlobView BlobReference="@Item.TryGetProperty("BinaryData")" />
         }
 
