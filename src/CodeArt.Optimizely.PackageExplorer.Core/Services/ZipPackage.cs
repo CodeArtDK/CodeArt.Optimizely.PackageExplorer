@@ -14,6 +14,9 @@ public class ZipPackage : IDisposable
 
     private static readonly Regex NumericCharRefRegex = new("&#(x?[0-9A-Fa-f]+);", RegexOptions.Compiled);
 
+    // New threshold to avoid loading very large XML files fully into memory as strings
+    private const long LargeXmlSizeThresholdBytes = 16 * 1024 * 1024; // 16 MB
+
     public ZipPackage(string path)
     {
         var stream = File.OpenRead(path);
@@ -31,6 +34,15 @@ public class ZipPackage : IDisposable
         var entry = _zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(filename, StringComparison.OrdinalIgnoreCase));
         if (entry == null) throw new FileNotFoundException($"File {filename} not found in package.");
 
+        // For large XML files, avoid creating large intermediate strings (xmlText + sanitized)
+        if (entry.Length > LargeXmlSizeThresholdBytes)
+        {
+            using var largeStream = entry.Open();
+            var settings = new System.Xml.XmlReaderSettings { CheckCharacters = false, DtdProcessing = System.Xml.DtdProcessing.Ignore };
+            using var xmlReader = System.Xml.XmlReader.Create(largeStream, settings);
+            return XDocument.Load(xmlReader, LoadOptions.PreserveWhitespace);
+        }
+
         using var stream = entry.Open();
         using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: false);
         var xmlText = reader.ReadToEnd();
@@ -39,9 +51,9 @@ public class ZipPackage : IDisposable
 
         // Use XmlReader with CheckCharacters=false as additional fallback
         using var stringReader = new StringReader(sanitized);
-        var settings = new System.Xml.XmlReaderSettings { CheckCharacters = false, DtdProcessing = System.Xml.DtdProcessing.Ignore }; // Ignore DTD to be safe
-        using var xmlReader = System.Xml.XmlReader.Create(stringReader, settings);
-        return XDocument.Load(xmlReader, LoadOptions.PreserveWhitespace);
+        var smallSettings = new System.Xml.XmlReaderSettings { CheckCharacters = false, DtdProcessing = System.Xml.DtdProcessing.Ignore }; // Ignore DTD to be safe
+        using var smallXmlReader = System.Xml.XmlReader.Create(stringReader, smallSettings);
+        return XDocument.Load(smallXmlReader, LoadOptions.PreserveWhitespace);
     }
 
     private static string SanitizeXml(string xml)

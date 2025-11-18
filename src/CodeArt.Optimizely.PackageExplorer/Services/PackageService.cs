@@ -1,5 +1,6 @@
 ﻿using CodeArt.Optimizely.PackageExplorer.Core.Models;
 using CodeArt.Optimizely.PackageExplorer.Core.Services;
+using Microsoft.IO;
 using System.IO;
 
 namespace CodeArt.Optimizely.PackageExplorer.Services
@@ -8,6 +9,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
     {
         private PackageReader packageReader;
         private Stream stream;
+        private static readonly RecyclableMemoryStreamManager _recyclableManager = new();
 
         public List<ContentItem>? ContentItems { get; private set; }
         public List<TabDefinition>? Tabs { get; private set; }
@@ -47,10 +49,16 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             return MimeTypes.GetMimeType(blobReference);
         }
 
-        public async Task LoadPackage(Stream stream)
+        public async Task LoadPackage(Stream inputStream)
         {
+            // Use recyclable memory stream to buffer the uploaded package only once (if seek needed)
+            // BrowserFile streams are forward-only; ZipArchive requires seekable stream for some operations and re-read
+            var buffered = _recyclableManager.GetStream("package-buffer");
+            await inputStream.CopyToAsync(buffered);
+            buffered.Position = 0;
+            stream = buffered; // store for export modifications
+
             // Reset state
-            this.stream = stream;
             DebugInfo = new PackageDebugInfo();
             ContentItems = null;
             ContentTypes = null;
