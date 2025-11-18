@@ -150,12 +150,9 @@
         StatusMessage = $"Loading {file.Name} , Size: {FormatFileSize(file.Size)}";
         try
         {
-            // Allow reading up to the actual file size to support large files
+            // Directly pass the browser file stream to avoid duplicating entire file in memory
             using var stream = file.OpenReadStream(maxAllowedSize: file.Size);
-            var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-            await package.LoadPackage(memoryStream);
+            await package.LoadPackage(stream);
             
             if (package.IsInDebugMode)
             {
