@@ -8,10 +8,28 @@
 
 ## 🚀 What It Does
 
+**Explore & Inspect:**
 - ✅ Upload and open `.episerverdata` / `.episerverpackage` files  
 - ✅ Inspect their contents in a structured UI  
-- ✅ View content, media, content types, categories, visitor groups, and more  
+- ✅ View content, media, content types, categories, tab definitions, and visitor groups/audiences  
 - ✅ Drill down into content details and metadata using tree views and dialogs  
+- ✅ Debug mode for troubleshooting malformed or corrupted packages
+
+**Modify & Clean:**
+- ✅ Delete content items, content types, media, categories, and tab definitions
+- ✅ Download modified packages with your changes applied
+- ✅ Track modifications with visual indicators
+
+**Export:**
+- ✅ Export content to CSV or JSON formats
+- ✅ Customize which properties to export with multi-select interface
+- ✅ Export respects active filters and sorting
+
+**Developer Tools:**
+- ✅ Package validation and error tracking for debugging
+- ✅ Browse package structure and view ZIP contents
+- ✅ Performance optimizations for handling large packages
+- ✅ Progressive Web App (PWA) with automatic updates
 
 All powered by [Blazor WebAssembly](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor) and [MudBlazor](https://mudblazor.com/).
 
@@ -19,20 +37,35 @@ All powered by [Blazor WebAssembly](https://dotnet.microsoft.com/apps/aspnet/web
 
 ## 🛤 Roadmap
 
-The current version is focused on **read-only exploration** of package contents. But this is just the beginning:
-
-### ✅ MVP (now)
+### ✅ Version 1.0 (Current - November 2025)
+**Explore & Debug:**
 - Open and parse Episerver content packages
-- Display structured UI with tabs and tree views
-- Provide insights into content hierarchy and metadata
+- Display structured UI with tabs, tree views, and data grids
+- Debug mode for troubleshooting malformed packages
+- View content, media, content types, categories, tab definitions, and audiences/visitor groups
+- Performance optimizations for large packages
+
+**Modify:**
+- Delete content items, content types, media, categories, and tab definitions
+- Download modified packages
+- Track and visualize modifications
+
+**Export:**
+- Export content to CSV and JSON formats
+- Customizable property selection
+- Respect filters and sorting
+
+**Other:**
+- Progressive Web App (PWA) support with automatic updates
+- Installable as desktop application
 
 ### 🛠 Coming Soon
-- ✏️ Edit packages directly in the UI
-- 🔁 Convert packages to other formats (e.g., JSON, XML, cross-CMS import formats)
+- ✏️ Edit content properties directly in the UI
+- 📝 Edit block properties and nested content structures  
+- 🤖 **CLI tool** for automation, scripting, and working with very large packages
 - 📦 Create new packages from scratch
 - 🔍 Compare packages (diff support)
-- 🤖 CLI support for automation and scripting
-- 💾 Save/export modified packages
+- 🔁 Additional export formats (XML, Excel)
 
 ---
 
