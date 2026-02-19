@@ -17,6 +17,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
         public List<ContentTypeDefinition>? ContentTypes { get; private set; }
         public List<CategoryDefinition>? Categories { get; private set; }
         public List<VisitorGroup>? Audiences { get; private set; }
+        public List<DisplayTemplate>? DisplayTemplates { get; private set; }
         public PackageDebugInfo DebugInfo { get; private set; } = new();
         public bool IsInDebugMode => DebugInfo.HasErrors;
         
@@ -64,6 +65,7 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
             ContentTypes = null;
             Categories = null;
             Audiences = null;
+            DisplayTemplates = null;
             Tabs = null;
             Hierarchy = null;
             
@@ -184,6 +186,24 @@ namespace CodeArt.Optimizely.PackageExplorer.Services
                         StackTrace = ex.StackTrace
                     });
                 }
+
+                // Try to load display templates
+                try
+                {
+                    DisplayTemplates = packageReader.GetDisplayTemplates();
+                }
+                catch (Exception ex)
+                {
+                    DebugInfo.Errors.Add(new PackageError
+                    {
+                        Stage = "Loading Display Templates (epiDefinition.xml)",
+                        Message = "Failed to parse display templates",
+                        Details = ex.Message,
+                        StackTrace = ex.StackTrace
+                    });
+                }
+
+                await Task.Yield();
 
                 // Try to build hierarchy (only if we have content items)
                 if (ContentItems != null)

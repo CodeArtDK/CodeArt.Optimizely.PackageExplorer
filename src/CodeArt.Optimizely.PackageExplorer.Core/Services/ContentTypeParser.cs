@@ -99,4 +99,61 @@ public static class ContentTypeParser
 
         return categories;
     }
+
+    public static List<DisplayTemplate> ParseDisplayTemplates(XDocument doc)
+    {
+        var templates = new List<DisplayTemplate>();
+
+        var templateElements = doc
+            .Descendants("displaytemplates")
+            .Descendants("DisplayTemplate");
+
+        foreach (var tmpl in templateElements)
+        {
+            var template = new DisplayTemplate
+            {
+                Key = (string?)tmpl.Element("Key") ?? "",
+                Name = (string?)tmpl.Element("Name") ?? "",
+                ContentTypeName = (string?)tmpl.Element("ContentTypeName"),
+                BaseType = (string?)tmpl.Element("BaseType"),
+                NodeType = (string?)tmpl.Element("NodeType"),
+                IsDefault = (bool?)tmpl.Element("IsDefault") ?? false
+            };
+
+            var settings = tmpl.Element("Settings")?.Elements("Setting");
+            if (settings != null)
+            {
+                foreach (var setting in settings)
+                {
+                    var s = new DisplayTemplateSetting
+                    {
+                        Key = (string?)setting.Element("Key") ?? "",
+                        Name = (string?)setting.Element("Name") ?? "",
+                        Editor = (string?)setting.Element("Editor"),
+                        SortOrder = (int?)setting.Element("SortOrder") ?? 0
+                    };
+
+                    var choices = setting.Element("Choices")?.Elements("Choice");
+                    if (choices != null)
+                    {
+                        foreach (var choice in choices)
+                        {
+                            s.Choices.Add(new DisplayTemplateChoice
+                            {
+                                Key = (string?)choice.Element("Key") ?? "",
+                                Name = (string?)choice.Element("Name") ?? "",
+                                SortOrder = (int?)choice.Element("SortOrder") ?? 0
+                            });
+                        }
+                    }
+
+                    template.Settings.Add(s);
+                }
+            }
+
+            templates.Add(template);
+        }
+
+        return templates;
+    }
 }
