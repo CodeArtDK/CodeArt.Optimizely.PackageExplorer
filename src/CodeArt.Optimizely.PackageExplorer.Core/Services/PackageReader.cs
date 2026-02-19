@@ -64,4 +64,10 @@ public class PackageReader
             return new List<VisitorGroup>();
         }
     }
+
+    public List<DisplayTemplate> GetDisplayTemplates()
+    {
+        var xml = _zip.ReadXmlFile("epiDefinition.xml");
+        return ContentTypeParser.ParseDisplayTemplates(xml);
+    }
 }

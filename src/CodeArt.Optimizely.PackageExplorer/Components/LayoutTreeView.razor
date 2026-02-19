@@ -1,0 +1,67 @@
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@using CodeArt.Optimizely.PackageExplorer.Core.Services
+
+@if (_rootNode != null)
+{
+    <MudTreeView T="LayoutNode" Dense="true" ExpandOnClick="true">
+        <MudTreeViewItem T="LayoutNode" Value="@_rootNode" Expanded="true"
+                         Icon="@GetIcon(_rootNode.Type)" Text="@GetLabel(_rootNode)">
+            @RenderChildren(_rootNode)
+        </MudTreeViewItem>
+    </MudTreeView>
+}
+else if (!string.IsNullOrWhiteSpace(Json))
+{
+    <MudText Typo="Typo.caption" Color="Color.Warning">Unable to parse layout JSON</MudText>
+}
+
+@code {
+    [Parameter] public string? Json { get; set; }
+
+    private LayoutNode? _rootNode;
+
+    protected override void OnParametersSet()
+    {
+        _rootNode = LayoutParser.ParseLayout(Json);
+    }
+
+    private RenderFragment RenderChildren(LayoutNode parent) => builder =>
+    {
+        foreach (var child in parent.Nodes)
+        {
+            builder.OpenComponent<MudTreeViewItem<LayoutNode>>(0);
+            builder.AddAttribute(1, "Value", child);
+            builder.AddAttribute(2, "Icon", GetIcon(child.Type));
+            builder.AddAttribute(3, "Text", GetLabel(child));
+            if (child.Nodes.Any())
+            {
+                builder.AddAttribute(4, "Expanded", true);
+                builder.AddAttribute(5, "ChildContent", RenderChildren(child));
+            }
+            builder.CloseComponent();
+        }
+    };
+
+    private static string GetIcon(string type) => type switch
+    {
+        "outline" => Icons.Material.Filled.Description,
+        "section" => Icons.Material.Filled.ViewAgenda,
+        "grid" => Icons.Material.Filled.GridView,
+        "row" => Icons.Material.Filled.TableRows,
+        "column" => Icons.Material.Filled.ViewColumn,
+        "component" => Icons.Material.Filled.Widgets,
+        _ => Icons.Material.Filled.Circle
+    };
+
+    private static string GetLabel(LayoutNode node)
+    {
+        var label = $"{node.Type}";
+        if (!string.IsNullOrEmpty(node.Name))
+            label += $": {node.Name}";
+        if (!string.IsNullOrEmpty(node.DisplayTemplateKey))
+            label += $" [{node.DisplayTemplateKey}]";
+        if (node.DisplaySettings.Any())
+            label += $" ({string.Join(", ", node.DisplaySettings.Select(kv => $"{kv.Key}={kv.Value}"))})";
+        return label;
+    }
+}

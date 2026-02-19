@@ -131,8 +131,21 @@ public class ContentProperty
     public int OwnerTab { get; set; }
 
     public int PropertyDefinitionID { get; set; }
+
+    public List<ContentProperty> BlockProperties { get; set; } = new();
+    public List<ContentProperty> ListItems { get; set; } = new();
+    public BlockTypeReference? BlockType { get; set; }
+
+    public bool HasNestedData => BlockProperties.Count > 0 || ListItems.Count > 0;
+
     public override string ToString()
     {
         return Name + ": " + Value?.ToString();
     }
+}
+
+public class BlockTypeReference
+{
+    public string? Guid { get; set; }
+    public string? Name { get; set; }
 }

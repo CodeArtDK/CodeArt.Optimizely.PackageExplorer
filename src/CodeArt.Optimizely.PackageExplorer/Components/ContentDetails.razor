@@ -1,4 +1,4 @@
-﻿@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Services
 @using CodeArt.Optimizely.PackageExplorer.Core.Models
 @inject IJSRuntime JS;
 @inject PackageService package;
@@ -23,6 +23,7 @@
         {
             <MudDataGrid Items="@Item.Properties" Dense="true">
                 <Columns>
+                    <HierarchyColumn T="ContentProperty" />
                     <TemplateColumn T="ContentProperty">
                         <CellTemplate Context="property">
                             @if (property?.Item?.Name?.StartsWith("Page") == true && property.Item.PropertyDefinitionID == 0)
@@ -31,6 +32,13 @@
                                           Variant="Variant.Outlined"
                                           Class="mr-2"
                                           Content="@("System")" />
+                            }
+                            @if (property?.Item?.BlockType != null)
+                            {
+                                <MudBadge Color="Color.Primary"
+                                          Variant="Variant.Outlined"
+                                          Class="mr-2"
+                                          Content="@(property.Item.BlockType.Name)" />
                             }
                         </CellTemplate>
                     </TemplateColumn>
@@ -43,9 +51,19 @@
                     </TemplateColumn>
                     <TemplateColumn T="ContentProperty" Title="Value">
                         <CellTemplate Context="property">
-                            @if (property?.Item?.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
+                            @if (property?.Item?.TypeName == "EPiServer.VisualBuilder.PropertyLayout")
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info">Layout JSON</MudChip>
+                            }
+                            else if (property?.Item?.TypeName == "EPiServer.SpecializedProperties.PropertyXhtmlString")
                             {
                                 <pre style="width:100%"><code class="language-html">@property.Item.Value</code></pre>
+                            }
+                            else if (property?.Item?.HasNestedData == true)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary">
+                                    @(property.Item.BlockProperties.Count + property.Item.ListItems.Count) nested
+                                </MudChip>
                             }
                             else
                             {
@@ -54,6 +72,43 @@
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
+                <ChildRowContent>
+                    <MudPaper Class="pa-3 ma-2" Elevation="0" Outlined="true">
+                        @if (context.Item.TypeName == "EPiServer.VisualBuilder.PropertyLayout" && !string.IsNullOrWhiteSpace(context.Item.Value))
+                        {
+                            <LayoutTreeView Json="@context.Item.Value" />
+                        }
+                        @if (context.Item.BlockProperties.Any())
+                        {
+                            <MudText Typo="Typo.subtitle2" Class="mb-1">Block Properties:</MudText>
+                            <NestedPropertyList Properties="@context.Item.BlockProperties" />
+                        }
+                        @if (context.Item.ListItems.Any())
+                        {
+                            <MudText Typo="Typo.subtitle2" Class="mb-1 mt-2">List Items (@context.Item.ListItems.Count):</MudText>
+                            @foreach (var listItem in context.Item.ListItems)
+                            {
+                                <MudPaper Class="pa-2 ma-1" Elevation="0" Outlined="true">
+                                    @if (listItem.BlockType != null)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">@listItem.BlockType.Name</MudChip>
+                                    }
+                                    @if (listItem.BlockProperties.Any())
+                                    {
+                                        <NestedPropertyList Properties="@listItem.BlockProperties" Depth="1" />
+                                    }
+                                </MudPaper>
+                            }
+                        }
+                        @if (!context.Item.HasNestedData && context.Item.TypeName != "EPiServer.VisualBuilder.PropertyLayout")
+                        {
+                            <MudText Typo="Typo.body2">
+                                <strong>Type:</strong> @context.Item.TypeName<br />
+                                <strong>Value:</strong> @context.Item.Value
+                            </MudText>
+                        }
+                    </MudPaper>
+                </ChildRowContent>
             </MudDataGrid>
         }
         else

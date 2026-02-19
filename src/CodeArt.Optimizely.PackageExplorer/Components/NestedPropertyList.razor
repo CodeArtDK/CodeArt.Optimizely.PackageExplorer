@@ -1,0 +1,85 @@
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+@using CodeArt.Optimizely.PackageExplorer.Core.Services
+
+@if (Properties?.Any() == true)
+{
+    <MudSimpleTable Dense="true" Bordered="true" Class="@($"ml-{Math.Min(Depth * 2, 8)}")">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prop in Properties)
+            {
+                <tr>
+                    <td>
+                        <strong>@prop.Name</strong>
+                        @if (prop.BlockType != null)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ml-1">@prop.BlockType.Name</MudChip>
+                        }
+                    </td>
+                    <td><code>@prop.Type</code></td>
+                    <td>
+                        @if (prop.TypeName == "EPiServer.VisualBuilder.PropertyLayout" && !string.IsNullOrWhiteSpace(prop.Value))
+                        {
+                            <LayoutTreeView Json="@prop.Value" />
+                        }
+                        else if (!string.IsNullOrWhiteSpace(prop.Value))
+                        {
+                            @if (prop.Value.Length > 200)
+                            {
+                                <MudTooltip Text="@prop.Value">
+                                    <MudText Typo="Typo.body2">@prop.Value.Substring(0, 200)...</MudText>
+                                </MudTooltip>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2">@prop.Value</MudText>
+                            }
+                        }
+                    </td>
+                </tr>
+                @if (prop.HasNestedData && Depth < MaxDepth)
+                {
+                    <tr>
+                        <td colspan="3">
+                            @if (prop.BlockProperties.Any())
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Info" Class="mb-1">Block Properties:</MudText>
+                                <NestedPropertyList Properties="@prop.BlockProperties" Depth="@(Depth + 1)" />
+                            }
+                            @if (prop.ListItems.Any())
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Info" Class="mb-1 mt-2">List Items (@prop.ListItems.Count):</MudText>
+                                @foreach (var listItem in prop.ListItems)
+                                {
+                                    <MudPaper Class="pa-2 ma-1" Elevation="0" Outlined="true">
+                                        @if (listItem.BlockType != null)
+                                        {
+                                            <MudText Typo="Typo.subtitle2">@listItem.BlockType.Name</MudText>
+                                        }
+                                        @if (listItem.BlockProperties.Any())
+                                        {
+                                            <NestedPropertyList Properties="@listItem.BlockProperties" Depth="@(Depth + 1)" />
+                                        }
+                                    </MudPaper>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </MudSimpleTable>
+}
+
+@code {
+    [Parameter] public List<ContentProperty>? Properties { get; set; }
+    [Parameter] public int Depth { get; set; } = 0;
+
+    private const int MaxDepth = 10;
+}

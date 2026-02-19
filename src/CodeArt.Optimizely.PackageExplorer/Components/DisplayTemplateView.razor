@@ -1,0 +1,82 @@
+@using CodeArt.Optimizely.PackageExplorer.Services
+@using CodeArt.Optimizely.PackageExplorer.Core.Models
+
+@inject PackageService package;
+
+@if (package.DisplayTemplates?.Any() == true)
+{
+    <MudDataGrid Items="@package.DisplayTemplates" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Single">
+        <Columns>
+            <HierarchyColumn T="DisplayTemplate" />
+            <PropertyColumn Property="x => x.Key" Title="Key" />
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.AppliesTo" Title="Applies To" />
+            <PropertyColumn Property="x => x.TargetType" Title="Type" />
+            <TemplateColumn T="DisplayTemplate" Title="Default">
+                <CellTemplate>
+                    @if (context.Item.IsDefault)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Settings.Count" Title="# Settings" />
+        </Columns>
+        <ChildRowContent>
+            @if (context.Item.Settings.Any())
+            {
+                <MudPaper Class="pa-4 ma-2" Elevation="0" Outlined="true">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Settings</MudText>
+                    <MudStack Spacing="2">
+                        @foreach (var setting in context.Item.Settings.OrderBy(s => s.SortOrder))
+                        {
+                            <MudPaper Class="pa-3" Elevation="1">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudText Typo="Typo.subtitle2">@setting.Name</MudText>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@setting.Editor</MudChip>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Key: @setting.Key</MudText>
+                                </MudStack>
+                                @if (setting.Choices.Any())
+                                {
+                                    <MudSimpleTable Dense="true" Class="mt-2">
+                                        <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Name</th>
+                                                <th>Sort Order</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var choice in setting.Choices.OrderBy(c => c.SortOrder))
+                                            {
+                                                <tr>
+                                                    <td><code>@choice.Key</code></td>
+                                                    <td>@choice.Name</td>
+                                                    <td>@choice.SortOrder</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </MudSimpleTable>
+                                }
+                            </MudPaper>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+            else
+            {
+                <MudText Class="pa-4" Color="Color.Secondary">No settings defined.</MudText>
+            }
+        </ChildRowContent>
+    </MudDataGrid>
+}
+else
+{
+    <MudText Color="Color.Secondary" Class="mt-2">
+        No display templates found.
+    </MudText>
+}

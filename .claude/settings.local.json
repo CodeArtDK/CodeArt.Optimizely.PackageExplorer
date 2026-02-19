@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(unzip:*)",
+      "Bash(xmllint:*)",
+      "Bash(powershell -Command \"[xml]$x = Get-Content epiDefinition.xml; $x.OuterXml\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(powershell -NoProfile -File -:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dotnet build:*)"
+    ]
+  }
+}

@@ -89,8 +89,12 @@
                     <ContentTree/>
                 </MudTabPanel>
 
-                <MudTabPanel Text="@($"Content Types ({package.ContentTypes.Count})")">
+                <MudTabPanel Text="@($"Content Types ({package.ContentTypes?.Count ?? 0})")" Visible="@(package.ContentTypes?.Any() == true)">
                     <ContentTypeView />
+                </MudTabPanel>
+
+                <MudTabPanel Text="@($"Display Templates ({package.DisplayTemplates?.Count ?? 0})")" Visible="@(package.DisplayTemplates?.Any() == true)">
+                    <DisplayTemplateView />
                 </MudTabPanel>
 
                 <MudTabPanel Text="Media" >
